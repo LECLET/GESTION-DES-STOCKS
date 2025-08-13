@@ -1,0 +1,47 @@
+
+* { box-sizing: border-box; }
+body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#0f1115; color:#e6e6e6; }
+a { color: #67b7ff; }
+header { display:flex; align-items:center; gap:12px; padding:12px 16px; background:#0b0d11; border-bottom:1px solid #222; position:sticky; top:0; z-index:10;}
+header img { height:40px; width:auto; border-radius:4px; }
+header h1 { font-size:18px; margin:0; font-weight:600; }
+.badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#222; font-size:12px; margin-left:6px; }
+.badge.warn { background:#4d2a00; color:#ffb86b; }
+.badge.alert { background:#401b1b; color:#ff6b6b; }
+.container { max-width:1200px; margin:0 auto; padding:16px; }
+.card { background:#12151c; border:1px solid #23262e; border-radius:14px; padding:16px; margin-bottom:16px; box-shadow:0 4px 24px rgba(0,0,0,.2); }
+.grid { display:grid; gap:16px; }
+.grid.cols-2 { grid-template-columns:repeat(2, minmax(0,1fr)); }
+.grid.cols-3 { grid-template-columns:repeat(3, minmax(0,1fr)); }
+.grid.cols-4 { grid-template-columns:repeat(4, minmax(0,1fr)); }
+input, select, button, textarea { background:#0f1218; color:#e6e6e6; border:1px solid #2a2f3a; border-radius:10px; padding:10px 12px; font-size:14px; }
+button { cursor:pointer; }
+button.primary { background:#1f6feb; border-color:#2a76ff; }
+button.danger { background:#a42828; border-color:#bb2e2e; }
+button.ghost { background:transparent; border-color:#2a2f3a; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th, td { border-bottom:1px solid #23262e; padding:8px; text-align:left; vertical-align:top; }
+th { background:#0d1016; position:sticky; top:0; z-index:1; }
+tr:hover { background:#0d1220; }
+.kpi { display:flex; gap:12px; flex-wrap:wrap; }
+.kpi .item { flex:1 1 200px; background:#12151c; border:1px solid #23262e; border-radius:12px; padding:12px; }
+.tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.tabs button { padding:8px 12px; }
+.tabs button.active { background:#1f6feb; border-color:#2a76ff; }
+.flex { display:flex; gap:8px; align-items:center; }
+.right { margin-left:auto; }
+.hidden { display:none !important; }
+.pill { padding:2px 8px; border-radius:9999px; border:1px solid #2a2f3a; background:#0f1218; font-size:12px; }
+.pill.orange { border-color:#c07a00; color:#ffb86b; }
+.pill.red { border-color:#a42828; color:#ff7b7b; }
+footer { text-align:center; font-size:12px; padding:16px; opacity:0.7; }
+hr { border:0; border-top:1px solid #23262e; margin:12px 0; }
+
+.login-wrap { max-width:360px; margin:8vh auto; }
+.brand { text-align:center; margin-bottom:16px; }
+.brand img { height:64px; }
+.brand h2 { margin:8px 0 0; font-weight:600; }
+small.muted { color:#9aa1ac; }
+
+table .qty-warn { background:#3a2a00; }
+table .qty-alert { background:#3a1111; }
