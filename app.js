@@ -6,6 +6,16 @@ const FAMILIES=["Uniformes","EPI","Communication","Roulant","Informatique","Lice
 const CATEGORIES=["Uniformes","Tenues EPI","Matériel de communication","Matériel Roulant","Matériel informatique","Licences informatiques","Divers"];
 const SIZES=["XS","S","M","L","XL","2XL","3XL","4XL"];
 const DB={users:"users",agencies:"agencies",products:"products",stock:"stock",moves:"movements",dict:"dict"};
+// === READY FLAG ===
+let __READY=false;
+function setReady(ok, err){
+  const btn=document.getElementById('btnLogin');
+  const msg=document.getElementById('initMsg');
+  if(btn){ btn.disabled=!ok; }
+  if(msg){ msg.textContent = ok ? '' : ('Erreur d\'initialisation'+(err?(' : '+err):'')); }
+  __READY=ok;
+}
+
 
 const $=s=>document.querySelector(s); const $$=s=>Array.from(document.querySelectorAll(s));
 const money=n=>(n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
@@ -40,8 +50,7 @@ async function fillAgencySwitch(){const sw=$("#agencySwitch");const all=await St
 sw.innerHTML="";allowed.forEach(a=>{const o=document.createElement("option");o.value=a;o.text=a;sw.add(o)});session.agency=allowed.includes(session.agency)?session.agency:(allowed[0]||all[0]);sw.value=session.agency;
 sw.classList.toggle("hidden",allowed.length<=1&&session.role!=="admin");sw.onchange=()=>{session.agency=sw.value;$("#bAgency").textContent=session.agency;loadCatalogue();loadMoves()}}
 
-$("#btnLogin").onclick=async()=>{if(!await login($("#lUser").value.trim(),$("#lPass").value.trim()))return alert("Identifiants invalides.");$("#login").classList.add("hidden");$("#hdr").classList.remove("hidden");$("#app").classList.remove("hidden");
-$("#bAgency").textContent=session.agency;$("#bRole").textContent=session.role;document.querySelectorAll(".admin-only").forEach(e=>e.classList.toggle("hidden",session.role!=="admin"));renderTabs();fillAgencySwitch();switchTab("catalogue")};
+document.getElementById('btnLogin').onclick=async()=>{try{if(!__READY)return alert('Patientez : initialisation en cours…');const u=$('#lUser').value.trim(),p=$('#lPass').value.trim();if(!await login(u,p))return alert('Identifiants invalides.');$('#login').classList.add('hidden');$('#hdr').classList.remove('hidden');$('#app').classList.remove('hidden');$('#bAgency').textContent=session.agency;$('#bRole').textContent=session.role;document.querySelectorAll('.admin-only').forEach(e=>e.classList.toggle('hidden',session.role!=='admin'));renderTabs();fillAgencySwitch();switchTab('catalogue');}catch(e){alert('Erreur : '+e);console.error(e)}};
 $("#btnLogout").onclick=()=>{logout();location.reload()};
 
 let catPage=1,catPageSize=20,catRows=[];
@@ -154,4 +163,4 @@ $("#uDel").onclick=async()=>{const user=$("#uUser").value.trim();if(!user)return
 $("#eXLSX").onclick=()=>$("#expX").click();$("#iXLSX").onchange=e=>$("#impX").onchange(e);$("#eJSON").onclick=async()=>{const data={};for(const k of Object.values(DB))data[k]=await Store.get(k);const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="export_full.json";a.click()};
 $("#iJSON").onchange=async e=>{const f=e.target.files[0];if(!f)return;const txt=await f.text();const data=JSON.parse(txt);for(const [k,v]of Object.entries(data))if(Object.values(DB).includes(k))await Store.set(k,v);alert("Import JSON terminé");location.reload()}};
 
-(async function(){try{const app=firebase.initializeApp(FIREBASE_CONFIG);await firebase.firestore().collection("t").limit(1).get()}catch(e){}await initStore()})();
+(async function(){try{const app=firebase.initializeApp(FIREBASE_CONFIG);await firebase.firestore().collection('t').limit(1).get()}catch(e){}try{await initStore();setReady(true);}catch(err){console.error(err);try{Store=LocalStore();await Store.init();setReady(true);}catch(e2){console.error(e2);setReady(false,String(e2))}}})();
