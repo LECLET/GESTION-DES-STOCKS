@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GESTION DE STOCK — ARTEMIS security</title>
+  <title>GESTION DE STOCK — ARTEMIS security (CLOUD • DEBUG)</title>
   <link rel="stylesheet" href="styles.css">
   <!-- Libs -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
@@ -14,12 +14,12 @@
   <script src="https://cdn.jsdelivr.net/npm/localforage@1/dist/localforage.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
-  
-  <!-- Firebase (compat) for Firestore cloud mode -->
+
+  <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script defer src="config.js"></script>
 
+  <script defer src="config.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -38,18 +38,18 @@
   <!-- LOGIN -->
   <div class="login-wrap" id="loginView">
     <div class="card">
+      <div id="debugPanel" class="hidden"><h4>Debug</h4><div id="debugStatus"></div><div id="debugLog"></div><button id="btnHideDebug" class="ghost">Masquer</button></div>
       <div class="brand">
-        <img src="logo.jpg" alt="ARTEMIS security">
+        <img src="logo.jpg" alt="ARTEMIS security" style="height:64px;border-radius:8px">
         <h2>Connexion</h2>
         <small class="muted">Veuillez vous connecter</small>
       </div>
       <div class="grid">
+        <div class="flex"><button id="btnShowDebug" class="ghost">Afficher debug</button><button id="btnForceLocal" class="ghost right">Forcer mode local</button></div>
         <input id="loginUser" placeholder="Identifiant" autocomplete="username">
         <input id="loginPass" type="password" placeholder="Mot de passe" autocomplete="current-password">
         <button id="btnLogin" class="primary">Se connecter</button>
       </div>
-      <hr>
-      <small class="muted">© Artemis security — Gestion de stock</small>
     </div>
   </div>
 
@@ -112,7 +112,7 @@
       <div class="grid cols-3">
         <input id="pAffectation" placeholder="Affectation (libre)">
         <input id="pMinGlobal" type="number" min="0" step="1" placeholder="Seuil mini global">
-        <input id="pSizesToggle" type="checkbox"> <label for="pSizesToggle">Seuils par taille (optionnels)</label>
+        <label><input id="pSizesToggle" type="checkbox"> Seuils par taille (optionnels)</label>
       </div>
       <div id="sizesWrap" class="grid cols-4 hidden"></div>
       <div class="flex">
@@ -168,7 +168,7 @@
       <hr>
       <div class="card" style="max-height:360px; overflow:auto;">
         <table id="tblStats">
-          <thead><tr><th>Référence</th><th>Article</th><th>Stock</th><th>Valorisation</th><th>Entrées</th><th>Sorties</th></tr></thead>
+          <thead><tr><th>Référence</th><th>Article</</th><th>Stock</th><th>Valorisation</th><th>Entrées</th><th>Sorties</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -218,6 +218,6 @@
     </div>
 
   </div>
-  <footer>ARTEMIS security — Application front-end (GitHub Pages). Données locales par défaut, connectable à un cloud (Firebase) via <code>config.js</code>.</footer>
+  <footer>ARTEMIS security — Version DEBUG (statuts visibles : provider, erreurs). Données Cloud (Firestore) par défaut, fallback local possible.</footer>
 </body>
 </html>

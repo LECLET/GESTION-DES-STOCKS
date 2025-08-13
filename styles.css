@@ -1,47 +1,53 @@
 
-* { box-sizing: border-box; }
-body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#0f1115; color:#e6e6e6; }
-a { color: #67b7ff; }
-header { display:flex; align-items:center; gap:12px; padding:12px 16px; background:#0b0d11; border-bottom:1px solid #222; position:sticky; top:0; z-index:10;}
-header img { height:40px; width:auto; border-radius:4px; }
-header h1 { font-size:18px; margin:0; font-weight:600; }
-.badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#222; font-size:12px; margin-left:6px; }
-.badge.warn { background:#4d2a00; color:#ffb86b; }
-.badge.alert { background:#401b1b; color:#ff6b6b; }
-.container { max-width:1200px; margin:0 auto; padding:16px; }
-.card { background:#12151c; border:1px solid #23262e; border-radius:14px; padding:16px; margin-bottom:16px; box-shadow:0 4px 24px rgba(0,0,0,.2); }
-.grid { display:grid; gap:16px; }
-.grid.cols-2 { grid-template-columns:repeat(2, minmax(0,1fr)); }
-.grid.cols-3 { grid-template-columns:repeat(3, minmax(0,1fr)); }
-.grid.cols-4 { grid-template-columns:repeat(4, minmax(0,1fr)); }
-input, select, button, textarea { background:#0f1218; color:#e6e6e6; border:1px solid #2a2f3a; border-radius:10px; padding:10px 12px; font-size:14px; }
-button { cursor:pointer; }
-button.primary { background:#1f6feb; border-color:#2a76ff; }
-button.danger { background:#a42828; border-color:#bb2e2e; }
-button.ghost { background:transparent; border-color:#2a2f3a; }
-table { width:100%; border-collapse:collapse; font-size:14px; }
-th, td { border-bottom:1px solid #23262e; padding:8px; text-align:left; vertical-align:top; }
-th { background:#0d1016; position:sticky; top:0; z-index:1; }
-tr:hover { background:#0d1220; }
-.kpi { display:flex; gap:12px; flex-wrap:wrap; }
-.kpi .item { flex:1 1 200px; background:#12151c; border:1px solid #23262e; border-radius:12px; padding:12px; }
-.tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
-.tabs button { padding:8px 12px; }
-.tabs button.active { background:#1f6feb; border-color:#2a76ff; }
-.flex { display:flex; gap:8px; align-items:center; }
-.right { margin-left:auto; }
-.hidden { display:none !important; }
-.pill { padding:2px 8px; border-radius:9999px; border:1px solid #2a2f3a; background:#0f1218; font-size:12px; }
-.pill.orange { border-color:#c07a00; color:#ffb86b; }
-.pill.red { border-color:#a42828; color:#ff7b7b; }
-footer { text-align:center; font-size:12px; padding:16px; opacity:0.7; }
-hr { border:0; border-top:1px solid #23262e; margin:12px 0; }
+:root{
+  --bg:#0f172a; --bg2:#0b1222; --card:#111827; --muted:#94a3b8; --accent:#22c55e;
+  --text:#e5e7eb; --danger:#ef4444; --border:#1f2937;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+body{background:linear-gradient(180deg,#0b1222 0,#0f172a 30%,#0b1222 100%);color:var(--text)}
+a{color:#93c5fd}
+header{display:flex;align-items:center;gap:12px;padding:16px;background:rgba(17,24,39,.85);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+header img{height:40px;width:auto;border-radius:6px}
+header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.3px}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#0b1222;border:1px solid var(--border);font-size:12px;color:#cbd5e1}
+.badge.warn{border-color:#c07a00;color:#ffb86b}
+.badge.alert{border-color:#a42828;color:#ff7b7b}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.card{background:rgba(17,24,39,.85);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.35);padding:20px;margin-bottom:16px}
+.grid{display:grid;gap:16px}
+.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:980px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}}
+input,select,button,textarea{background:#0b1222;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px}
+input::placeholder,textarea::placeholder{color:#94a3b8AA}
+button{cursor:pointer;border:1px solid #1f2937;background:#111827}
+button.primary{background:linear-gradient(180deg,#10b981,#059669);border-color:#0ea5a4;color:#062b2b;font-weight:700}
+button.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);border-color:#7f1d1d;color:#fff}
+button.ghost{background:transparent;border-color:#233046}
+table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
+th{background:#0b1222;color:#cbd5e1;position:sticky;top:0;z-index:1}
+tr:hover td{background:#0e162b}
+.kpi{display:flex;gap:12px;flex-wrap:wrap}
+.kpi .item{flex:1 1 200px;background:rgba(17,24,39,.85);border:1px solid var(--border);border-radius:12px;padding:12px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.tabs button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#0b1222;color:#cbd5e1}
+.tabs button.active{background:linear-gradient(180deg,#1f2937,#0b1222);border-color:#334155;color:#fff;font-weight:600}
+.login-wrap{max-width:620px;margin:10vh auto}
+.brand{text-align:left;margin-bottom:8px}
+.brand h2{margin:8px 0 0;font-weight:800;letter-spacing:.8px}
+small.muted{color:var(--muted)}
+.pill{padding:2px 8px;border-radius:9999px;border:1px solid var(--border);background:#0b1222;font-size:12px}
+.right{margin-left:auto}
+.hidden{display:none!important}
+footer{text-align:center;font-size:12px;padding:16px;color:var(--muted)}
+table .qty-warn{background:#3a2a00}
+table .qty-alert{background:#3a1111}
 
-.login-wrap { max-width:360px; margin:8vh auto; }
-.brand { text-align:center; margin-bottom:16px; }
-.brand img { height:64px; }
-.brand h2 { margin:8px 0 0; font-weight:600; }
-small.muted { color:#9aa1ac; }
-
-table .qty-warn { background:#3a2a00; }
-table .qty-alert { background:#3a1111; }
+/* Debug panel */
+#debugPanel{position:fixed;right:16px;bottom:16px;max-width:420px;background:#111827ee;border:1px solid #334155;border-radius:12px;padding:12px;font-size:12px;color:#e5e7eb;z-index:9999}
+#debugPanel h4{margin:0 0 6px 0;font-size:13px}
+#debugLog{max-height:160px;overflow:auto;border-top:1px solid #334155;margin-top:6px;padding-top:6px;}
+#debugPanel button{margin-top:6px}

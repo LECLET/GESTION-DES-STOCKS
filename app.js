@@ -1,15 +1,16 @@
 
-/* GESTION DE STOCK — Frontend sans serveur
-   Cloud par défaut : Firestore (FIREBASE_CONFIG requis). Fallback auto -> Local si init Firebase échoue.
-   - Auth simple (admin/admin ; demo/demo) stockée dans la base (Firestore ou locale).
-   - Agencies & roles
-   - Catalogue, seuils (global & par taille), réassort XLSX
-   - Mouvements in/out/transfer, purge (admin), exports JSON/XLSX
-   - Stats (période, valorisation)
-   - Recherche code-barres & scan caméra
-*/
+/* GESTION DE STOCK — DEBUG build */
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+// ---- DEBUG ----
+function dbg(msg){ try{ console.log("[DBG]", msg); const log=$("#debugLog"); if (log){ const p=document.createElement("div"); p.textContent = (new Date()).toLocaleTimeString()+" — "+msg; log.appendChild(p); log.scrollTop = log.scrollHeight; } }catch(e){} }
+function dbgStatus(obj){ const s=$("#debugStatus"); if (!s) return; s.innerHTML = Object.entries(obj).map(([k,v])=>`<div><b>${k}</b>: ${String(v)}</div>`).join(""); }
+function showDebug(v){ $("#debugPanel")?.classList.toggle("hidden", !v); }
+$("#btnShowDebug")?.addEventListener("click", ()=> showDebug(true));
+$("#btnHideDebug")?.addEventListener("click", ()=> showDebug(false));
+let DEBUG_INFO = { provider:"", firestore:"not-initialized" };
+dbg("Script chargé");
 
 // ---------- Storage Providers ----------
 const DB_KEYS = {
@@ -32,6 +33,7 @@ function createLocalStore(){
     },
     async seed(){
       await localforage.setItem(DB_KEYS.users, [
+        { user:"ARTEMIS", pass:"Simetra", role:"admin", agency:"IDF" },
         { user:"admin", pass:"admin", role:"admin", agency:"IDF" },
         { user:"demo", pass:"demo", role:"agence", agency:"IDF" },
       ]);
@@ -48,18 +50,29 @@ function createLocalStore(){
 function createFirestoreStore(){
   const app = firebase.initializeApp(FIREBASE_CONFIG);
   const db = firebase.firestore();
-  const root = db.collection("artemis-stock").doc("v1"); // single doc container
+  const root = db.collection("artemis-stock").doc("v1");
 
   return {
     async init(){
-      const snap = await root.get();
-      if (!snap.exists){
-        await this.seed();
+      try{
+        const snap = await root.get();
+        if (!snap.exists){
+          await this.seed();
+        }
+        DEBUG_INFO.firestore = "ok";
+        dbg("Firestore root reachable");
+        dbgStatus(DEBUG_INFO);
+      }catch(e){
+        DEBUG_INFO.firestore = e && (e.message||e.code||"error");
+        dbg("Firestore init/read error: "+DEBUG_INFO.firestore);
+        dbgStatus(DEBUG_INFO);
+        throw e;
       }
     },
     async seed(){
       await root.set({
         [DB_KEYS.users]: [
+          { user:"ARTEMIS", pass:"Simetra", role:"admin", agency:"IDF" },
           { user:"admin", pass:"admin", role:"admin", agency:"IDF" },
           { user:"demo", pass:"demo", role:"agence", agency:"IDF" },
         ],
@@ -83,6 +96,7 @@ function createFirestoreStore(){
 
 // Try to init the requested provider, fallback to local on error
 async function initStore(){
+  if (window.forceLocal){ dbg('Override forceLocal=TRUE'); DEBUG_INFO.provider='local-override'; Store = createLocalStore(); await Store.init(); dbgStatus(DEBUG_INFO); return; }
   if (STORAGE_PROVIDER === "firebase"){
     try{
       if (!FIREBASE_CONFIG || !FIREBASE_CONFIG.projectId){
@@ -90,16 +104,18 @@ async function initStore(){
       }
       Store = createFirestoreStore();
       await Store.init();
-      console.log("Cloud Firestore actif");
+      DEBUG_INFO.provider='firestore';
+      dbg('Cloud Firestore actif'); dbgStatus(DEBUG_INFO);
       return;
     }catch(e){
-      console.warn("Init Firestore impossible, bascule en local:", e.message);
+      console.warn("Init Firestore impossible, bascule en local:", e);
+      DEBUG_INFO.provider='firestore-failed'; dbgStatus(DEBUG_INFO);
     }
   }
-  // fallback
   Store = createLocalStore();
   await Store.init();
-  console.log("Stockage local actif");
+  if (!DEBUG_INFO.provider) DEBUG_INFO.provider='local';
+  dbg("Stockage local actif"); dbgStatus(DEBUG_INFO);
 }
 
 // ---------- Auth ----------
@@ -183,12 +199,19 @@ function switchTab(id){
 }
 
 // ---------- Login View ----------
-$("#btnLogin").addEventListener("click", async ()=>{
-  const u = $("#loginUser").value.trim();
-  const p = $("#loginPass").value.trim();
-  const ok = await login(u,p);
-  if (!ok) { alert("Identifiants invalides."); return; }
-  afterLogin();
+document.querySelector("#btnForceLocal")?.addEventListener("click", ()=>{ window.forceLocal = true; alert("Mode local forcé activé - recharge de la page."); location.reload(); });
+document.querySelector("#btnLogin").addEventListener("click", async ()=>{
+  try{
+    dbg("Login click");
+    const u = $("#loginUser").value.trim();
+    const p = $("#loginPass").value.trim();
+    const ok = await login(u,p);
+    dbg("Login result="+ok);
+    if (!ok) { alert("Identifiants invalides."); return; }
+    afterLogin();
+  }catch(err){
+    dbg("Login crash: "+(err&&err.message)); alert("Erreur JS pendant la connexion: "+(err&&err.message));
+  }
 });
 function afterLogin(){
   $("#loginView").classList.add("hidden");
@@ -218,10 +241,8 @@ async function loadCatalogue(){
   const products = await Store.get(DB_KEYS.products) || [];
   const stock = await Store.get(DB_KEYS.stock) || {};
   const stA = stock[session.agency] || {};
-  // Fill filters
   const catSel = $("#filterCategory"); catSel.innerHTML = "<option value=''>Toutes</option>";
   CATEGORIES.forEach(c=>{ const o=document.createElement("option"); o.value=c; o.textContent=c; catSel.appendChild(o); });
-  // Quick counters
   $("#kpiTotalItems").textContent = products.length;
   let valo = 0;
   for (const p of products){ const q = (stA[p.ref]?.total)||0; valo += q * Number(p.price||0); }
@@ -229,7 +250,6 @@ async function loadCatalogue(){
   const under = computeUnderThresholdForAgency(products, stA);
   $("#kpiUnder").textContent = under;
   $("#badgeLow").textContent = `${under} sous seuil`;
-  // Render table
   const q = $("#quickSearch").value.toLowerCase();
   const fcat = catSel.value;
   const reass = $("#filterReassort").value === "1";
@@ -458,15 +478,14 @@ $("#btnProposeReassort").addEventListener("click", async ()=>{
   const lines = [];
   for (const p of products){
     const st = stA[p.ref] || { total:0, sizes:{} };
-    let need = 0;
     if (p.minBySize){
       for (const [sz,min] of Object.entries(p.minBySize)){
         const cur = st.sizes?.[sz]||0;
-        if (cur < min){ need += (min-cur); lines.push({ref:p.ref, article:p.name, taille:sz, manquant:min-cur}); }
+        if (cur < min){ lines.push({ref:p.ref, article:p.name, taille:sz, manquant:(min-cur)}); }
       }
     } else if (p.minGlobal){
       const cur = st.total||0;
-      if (cur < p.minGlobal){ need = (p.minGlobal - cur); lines.push({ref:p.ref, article:p.name, taille:"", manquant:need}); }
+      if (cur < p.minGlobal){ lines.push({ref:p.ref, article:p.name, taille:"", manquant:(p.minGlobal-cur)}); }
     }
   }
   if (!lines.length){ alert("Aucun article sous seuil."); return; }
