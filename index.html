@@ -1,610 +1,975 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GESTION DE STOCK — ARTEMIS security (CLOUD • ALL-IN-ONE • FIX)</title>
-  <style>
-    :root{--bg:#0f172a;--bg2:#0b1222;--card:#111827;--muted:#94a3b8;--accent:#22c55e;--text:#e5e7eb;--danger:#ef4444;--border:#1f2937}
-    *{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    body{background:linear-gradient(180deg,#0b1222 0,#0f172a 30%,#0b1222 100%);color:var(--text)}
-    header{display:flex;align-items:center;gap:12px;padding:16px;background:rgba(17,24,39,.85);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
-    header img{height:40px;width:auto;border-radius:6px}header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.3px}
-    .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#0b1222;border:1px solid var(--border);font-size:12px;color:#cbd5e1}
-    .badge.warn{border-color:#c07a00;color:#ffb86b}.badge.alert{border-color:#a42828;color:#ff7b7b}
-    .container{max-width:1200px;margin:0 auto;padding:24px}.card{background:rgba(17,24,39,.85);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.35);padding:20px;margin-bottom:16px}
-    .grid{display:grid;gap:16px}.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media(max-width:980px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}}
-    input,select,button,textarea{background:#0b1222;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px}
-    button{cursor:pointer;border:1px solid #1f2937;background:#111827}button.primary{background:linear-gradient(180deg,#10b981,#059669);border-color:#0ea5a4;color:#062b2b;font-weight:700}
-    button.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);border-color:#7f1d1d;color:#fff}button.ghost{background:transparent;border-color:#233046}
-    table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid var(--border)}th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
-    th{background:#0b1222;color:#cbd5e1;position:sticky;top:0;z-index:1}tr:hover td{background:#0e162b}
-    .kpi{display:flex;gap:12px;flex-wrap:wrap}.kpi .item{flex:1 1 200px;background:rgba(17,24,39,.85);border:1px solid var(--border);border-radius:12px;padding:12px}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.tabs button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#0b1222;color:#cbd5e1}
-    .tabs button.active{background:linear-gradient(180deg,#1f2937,#0b1222);border-color:#334155;color:#fff;font-weight:600}
-    .login-wrap{max-width:620px;margin:10vh auto}.brand{text-align:left;margin-bottom:8px}.brand h2{margin:8px 0 0;font-weight:800;letter-spacing:.8px}
-    small.muted{color:#94a3b8}.pill{padding:2px 8px;border-radius:9999px;border:1px solid var(--border);background:#0b1222;font-size:12px}
-    .right{margin-left:auto}.hidden{display:none!important}footer{text-align:center;font-size:12px;padding:16px;color:#94a3b8}
-    table .qty-warn{background:#3a2a00}table .qty-alert{background:#3a1111}
-    #debugPanel{position:fixed;right:16px;bottom:16px;max-width:420px;background:#111827ee;border:1px solid #334155;border-radius:12px;padding:12px;font-size:12px;color:#e5e7eb;z-index:9999}
-    #debugPanel h4{margin:0 0 6px 0;font-size:13px}#debugLog{max-height:160px;overflow:auto;border-top:1px solid #334155;margin-top:6px;padding-top:6px;}#debugPanel button{margin-top:6px}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GESTION DE STOCK — ARTEMIS Security</title>
+<style>
+:root{--bg:#0f172a;--bg2:#0b1222;--card:#111827;--muted:#94a3b8;--accent:#22c55e;--text:#e5e7eb;--danger:#ef4444;--border:#1f2937}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+body{background:linear-gradient(180deg,#0b1222 0,#0f172a 30%,#0b1222 100%);color:var(--text)}
+header{display:flex;align-items:center;gap:12px;padding:16px;background:rgba(17,24,39,.85);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+header img{height:40px;width:auto;border-radius:6px}header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.3px}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#0b1222;border:1px solid var(--border);font-size:12px;color:#cbd5e1}
+.badge.warn{border-color:#c07a00;color:#ffb86b}.badge.alert{border-color:#a42828;color:#ff7b7b}
+.container{max-width:1300px;margin:0 auto;padding:24px}
+.card{background:rgba(17,24,39,.85);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.35);padding:20px;margin-bottom:16px}
+.grid{display:grid;gap:16px}.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1100px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}}
+input,select,button,textarea{background:#0b1222;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px}
+textarea{min-height:100px}
+button{cursor:pointer;border:1px solid #1f2937;background:#111827}button.primary{background:linear-gradient(180deg,#10b981,#059669);border-color:#0ea5a4;color:#062b2b;font-weight:700}
+button.danger{background:linear-gradient(180deg,#ef4444,#b91c1c);border-color:#7f1d1d;color:#fff}button.ghost{background:transparent;border-color:#233046}
+table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid var(--border)}th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
+th{background:#0b1222;color:#cbd5e1;position:sticky;top:0;z-index:1}tr:hover td{background:#0e162b}
+.kpi{display:flex;gap:12px;flex-wrap:wrap}.kpi .item{flex:1 1 200px;background:rgba(17,24,39,.85);border:1px solid var(--border);border-radius:12px;padding:12px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.tabs button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#0b1222;color:#cbd5e1}
+.tabs button.active{background:linear-gradient(180deg,#1f2937,#0b1222);border-color:#334155;color:#fff;font-weight:600}
+.login-wrap{max-width:620px;margin:10vh auto}.brand{text-align:left;margin-bottom:8px}.brand h2{margin:8px 0 0;font-weight:800;letter-spacing:.8px}
+small.muted{color:#94a3b8}.pill{padding:2px 8px;border-radius:9999px;border:1px solid var(--border);background:#0b1222;font-size:12px}
+.right{margin-left:auto}.hidden{display:none!important}footer{text-align:center;font-size:12px;padding:16px;color:#94a3b8}
+table .qty-warn{background:#3a2a00}table .qty-alert{background:#3a1111}
+.thumb{max-height:80px;border-radius:8px;border:1px solid #334155}
+.chart-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:1100px){.chart-wrap{grid-template-columns:1fr}}
+</style>
+<!-- Libs -->
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+<script>dayjs.extend(dayjs_plugin_utc); dayjs.extend(dayjs_plugin_timezone);</script>
+<script src="https://cdn.jsdelivr.net/npm/localforage@1/dist/localforage.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
-  <!-- Minimal libs via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
-  <script>dayjs.extend(dayjs_plugin_utc); dayjs.extend(dayjs_plugin_timezone);</script>
-  <script src="https://cdn.jsdelivr.net/npm/localforage@1/dist/localforage.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
-
-  <!-- Firebase (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header class="hidden" id="appHeader">
-    <img src="data:image/jpeg;base64,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" alt="ARTEMIS security">
-    <h1 id="appTitle"></h1>
-    <span class="badge" id="badgeAgency"></span>
-    <span class="badge" id="badgeRole"></span>
-    <span class="badge warn" id="badgeLow"></span>
-    <div class="right flex">
-      <button id="btnSwitchAgency" class="ghost">Changer d'agence</button>
-      <button id="btnLogout" class="ghost">Déconnexion</button>
-    </div>
-  </header>
+<header class="hidden" id="appHeader">
+  <img src="data:image/jpeg;base64,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" alt="ARTEMIS Security">
+  <h1 id="appTitle">GESTION DE STOCK — ARTEMIS Security</h1>
+  <span class="badge" id="badgeAgency"></span>
+  <span class="badge" id="badgeRole"></span>
+  <span class="badge warn" id="badgeLow"></span>
+  <div class="right flex">
+    <select id="agencySwitcher" class="hidden"></select>
+    <button id="btnLogout" class="ghost">Déconnexion</button>
+  </div>
+</header>
 
-  <div class="login-wrap" id="loginView">
-    <div class="card">
-      <div id="debugPanel" class="hidden"><h4>Debug</h4><div id="debugStatus"></div><div id="debugLog"></div><button id="btnHideDebug" class="ghost">Masquer</button></div>
-      <div class="brand">
-        <img src="data:image/jpeg;base64,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" alt="ARTEMIS security" style="height:64px;border-radius:8px">
-        <h2>Connexion</h2>
-        <small class="muted">Veuillez vous connecter</small>
+<!-- LOGIN -->
+<div class="login-wrap" id="loginView">
+  <div class="card">
+    <div class="brand">
+      <img src="data:image/jpeg;base64,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" alt="ARTEMIS Security" style="height:64px;border-radius:8px">
+      <h2>Connexion</h2>
+      <small class="muted">Veuillez vous connecter</small>
+    </div>
+    <div class="grid">
+      <input id="loginUser" placeholder="Identifiant" autocomplete="username">
+      <input id="loginPass" type="password" placeholder="Mot de passe" autocomplete="current-password">
+      <button id="btnLogin" class="primary">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="container hidden" id="appView">
+  <div class="tabs" id="mainTabs"></div>
+
+  <!-- Dashboard -->
+  <div id="tab-dashboard" class="tab card">
+    <div class="kpi">
+      <div class="item"><div>Total articles</div><div id="kpiTotalItems" style="font-size:24px;font-weight:700;"></div></div>
+      <div class="item"><div>Valorisation (agence)</div><div id="kpiValo" style="font-size:24px;font-weight:700;"></div></div>
+      <div class="item admin-only"><div>Valorisation (cumulé)</div><div id="kpiValoAll" style="font-size:24px;font-weight:700;"></div></div>
+      <div class="item"><div>Articles sous seuil</div><div id="kpiUnder" style="font-size:24px;font-weight:700;"></div></div>
+    </div>
+    <div class="chart-wrap card">
+      <canvas id="chartByCat"></canvas>
+      <canvas id="chartUnder"></canvas>
+    </div>
+    <hr>
+    <div class="grid cols-2">
+      <div>
+        <h3>Recherche rapide</h3>
+        <div class="flex">
+          <input id="quickSearch" placeholder="Nom, référence, code-barres…">
+          <button id="btnScan" class="ghost">Scanner</button>
+        </div>
+        <div id="qrRegion" class="hidden" style="margin-top:8px;"></div>
       </div>
-      <div class="grid">
-        <div class="flex"><button id="btnShowDebug" class="ghost">Afficher debug</button><button id="btnForceLocal" class="ghost right">Forcer mode local</button></div>
-        <input id="loginUser" placeholder="Identifiant" autocomplete="username">
-        <input id="loginPass" type="password" placeholder="Mot de passe" autocomplete="current-password">
-        <button id="btnLogin" class="primary">Se connecter</button>
+      <div>
+        <h3>Filtres & actions</h3>
+        <div class="grid cols-4">
+          <select id="filterFamily"></select>
+          <select id="filterSubcat"></select>
+          <select id="filterCategory"></select>
+          <select id="filterReassort">
+            <option value="">Tous</option>
+            <option value="1">À réassort (par taille)</option>
+          </select>
+          <button id="btnProposeReassort" class="primary">Proposer un réassort (par taille)</button>
+          <button id="btnReassortGenerate" class="ghost">Générer Entrées</button>
+          <div class="right">
+            <button id="btnExportProducts" class="ghost admin-only">Export Produits (FULL XLSX)</button>
+            <input type="file" id="fileImportProducts" class="admin-only" accept=".xlsx">
+            <button id="btnExportALL" class="ghost admin-only">Export TOUT (.zip)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="overflow:auto;">
+      <table id="tblCatalogue">
+        <thead>
+          <tr>
+            <th>Référence</th><th>Article</th><th>Famille</th><th>Sous-catégorie</th><th>Catégorie</th><th>Prix achat</th>
+            <th>Stock (agence)</th><th class="admin-only">Stock (cumulé)</th>
+            <th>Seuil (agence)</th><th>Code-barres</th><th>Affectation</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Fiche produit -->
+  <div id="tab-produit" class="tab card hidden">
+    <h3 id="formTitle">Nouvel article</h3>
+    <div class="grid cols-3">
+      <input id="pRef" placeholder="Référence">
+      <input id="pName" placeholder="Libellé">
+      <select id="pFamily"></select>
+      <input id="pSubcat" placeholder="Sous-catégorie">
+      <select id="pCategory"></select>
+      <input id="pPrice" type="number" min="0" step="0.01" placeholder="Prix d'achat">
+      <input id="pVendor" placeholder="Revendeur">
+      <input id="pBarcode" placeholder="Code-barres / QR">
+    </div>
+    <div class="grid cols-3">
+      <input id="pAffectation" placeholder="Affectation (libre)">
+      <input id="pMinGlobal" type="number" min="0" step="1" placeholder="Seuil mini global">
+      <label><input id="pSizesToggle" type="checkbox"> Seuils par taille (optionnels)</label>
+    </div>
+    <div id="sizesWrap" class="grid cols-4 hidden"></div>
+
+    <div class="card">
+      <h4>Seuils par agence</h4>
+      <div class="grid cols-4">
+        <select id="paAgency"></select>
+        <input id="paMinGlobal" type="number" min="0" step="1" placeholder="Seuil mini agence">
+        <label><input id="paSizesToggle" type="checkbox"> Seuils par taille (agence)</label>
+      </div>
+      <div id="paSizesWrap" class="grid cols-4 hidden"></div>
+      <div class="flex"><button id="btnSaveAgencyThresh" class="ghost">Enregistrer seuils agence</button></div>
+    </div>
+
+    <div class="card">
+      <h4>Média produit</h4>
+      <div class="grid cols-3">
+        <label>Photo (jpg/png)<input id="pPhoto" type="file" accept="image/*"></label>
+        <img id="pPhotoPreview" class="thumb hidden">
+        <label>Fiche technique (PDF)<input id="pTech" type="file" accept="application/pdf"></label>
+        <a id="pTechLink" href="#" target="_blank" class="hidden">Ouvrir fiche technique</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Notes (champ libre)</h4>
+      <textarea id="pNotes" placeholder="Informations complémentaires"></textarea>
+    </div>
+
+    <div class="flex">
+      <button id="btnSaveProduct" class="primary">Enregistrer</button>
+      <button id="btnNewProduct" class="ghost">Nouveau</button>
+      <div class="right">
+        <button id="btnDeleteProduct" class="danger hidden">Supprimer</button>
       </div>
     </div>
   </div>
 
-  <div class="container hidden" id="appView">
-    <div class="tabs" id="mainTabs"></div>
-    <div id="tab-dashboard" class="tab card">
-      <div class="kpi">
-        <div class="item"><div>Total articles</div><div id="kpiTotalItems" style="font-size:24px;font-weight:700;"></div></div>
-        <div class="item"><div>Valorisation stock</div><div id="kpiValo" style="font-size:24px;font-weight:700;"></div></div>
-        <div class="item"><div>Articles sous seuil</div><div id="kpiUnder" style="font-size:24px;font-weight:700;"></div></div>
+  <!-- Mouvements -->
+  <div id="tab-mouvements" class="tab card hidden">
+    <h3>Mouvements (Entrées / Sorties / Transferts)</h3>
+    <div class="grid cols-4">
+      <select id="mvType">
+        <option value="in">Entrée</option>
+        <option value="out">Sortie</option>
+        <option value="transfer">Transfert</option>
+      </select>
+      <datalist id="mvRefList"></datalist>
+      <input list="mvRefList" id="mvRefSearch" placeholder="Réf/nom (recherche rapide)">
+      <input id="mvRef" placeholder="Référence (manuel)">
+      <input id="mvQty" type="number" min="1" step="1" placeholder="Quantité">
+      <select id="mvSize"></select>
+      <label><input id="mvMultiSizes" type="checkbox"> Multi-tailles</label>
+      <div id="multiSizesWrap" class="grid cols-4 hidden"></div>
+      <input id="mvNote" placeholder="Destinataire / motif (sortie), bon, etc.">
+      <select id="mvToAgency" class="hidden"></select>
+      <button id="btnAddMv" class="primary">Ajouter</button>
+    </div>
+    <hr>
+    <div class="flex">
+      <input id="histSearch" placeholder="Filtrer l'historique">
+      <div class="right">
+        <button id="btnExportMv" class="ghost admin-only">Export XLSX</button>
+        <button id="btnPurge" class="danger admin-only">Purger l'historique (agence courante)</button>
       </div>
-      <hr>
-      <div class="grid cols-2">
-        <div>
-          <h3>Recherche rapide</h3>
-          <div class="flex">
-            <input id="quickSearch" placeholder="Nom, référence, code-barres…">
-            <button id="btnScan" class="ghost">Scanner</button>
-          </div>
-          <div id="qrRegion" class="hidden" style="margin-top:8px;"></div>
+    </div>
+    <div class="card" style="max-height:360px; overflow:auto;">
+      <table id="tblMv">
+        <thead><tr><th>Créé le</th><th>Type</th><th>Agence</th><th>Réf</th><th>Taille</th><th>Qté</th><th>Vers</th><th>Note</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div id="tab-stats" class="tab card hidden">
+    <h3>Statistiques</h3>
+    <div class="grid cols-4">
+      <input id="stFrom" type="date">
+      <input id="stTo" type="date">
+      <select id="stAgency"></select>
+      <button id="btnComputeStats" class="primary">Calculer</button>
+    </div>
+    <hr>
+    <div class="card" style="max-height:360px; overflow:auto;">
+      <table id="tblStats">
+        <thead><tr><th>Référence</th><th>Article</th><th>Famille</th><th>Catégorie</th><th>Stock</th><th>Valorisation</th><th>Entrées</th><th>Sorties</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Admin -->
+  <div id="tab-admin" class="tab card hidden">
+    <h3>Administration</h3>
+    <div class="grid cols-3">
+      <div class="card">
+        <h4>Agences</h4>
+        <div class="flex">
+          <input id="agNew" placeholder="Nouvelle agence">
+          <button id="btnAddAgency">Ajouter</button>
         </div>
-        <div>
-          <h3>Filtre</h3>
-          <div class="grid cols-3">
-            <select id="filterCategory"></select>
-            <select id="filterReassort">
-              <option value="">Tous</option>
-              <option value="1">À réassort</option>
-            </select>
-            <button id="btnProposeReassort" class="primary">Proposer un réassort</button>
-          </div>
-        </div>
+        <ul id="agList"></ul>
       </div>
       <div class="card">
-        <table id="tblCatalogue">
-          <thead>
-            <tr>
-              <th>Référence</th><th>Article</th><th>Catégorie</th><th>Prix achat</th><th>Stock (agence)</th><th>Seuil</th><th>Code-barres</th><th>Affectation</th><th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tab-produit" class="tab card hidden">
-      <h3 id="formTitle">Nouvel article</h3>
-      <div class="grid cols-3">
-        <input id="pRef" placeholder="Référence">
-        <input id="pName" placeholder="Libellé">
-        <select id="pCategory"></select>
-        <input id="pPrice" type="number" min="0" step="0.01" placeholder="Prix d'achat">
-        <input id="pVendor" placeholder="Revendeur">
-        <input id="pBarcode" placeholder="Code-barres / QR">
-      </div>
-      <div class="grid cols-3">
-        <input id="pAffectation" placeholder="Affectation (libre)">
-        <input id="pMinGlobal" type="number" min="0" step="1" placeholder="Seuil mini global">
-        <label><input id="pSizesToggle" type="checkbox"> Seuils par taille (optionnels)</label>
-      </div>
-      <div id="sizesWrap" class="grid cols-4 hidden"></div>
-      <div class="flex">
-        <button id="btnSaveProduct" class="primary">Enregistrer</button>
-        <button id="btnNewProduct" class="ghost">Nouveau</button>
-        <div class="right">
-          <button id="btnDeleteProduct" class="danger hidden">Supprimer</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-mouvements" class="tab card hidden">
-      <h3>Mouvements (Entrées / Sorties / Transferts)</h3>
-      <div class="grid cols-4">
-        <select id="mvType">
-          <option value="in">Entrée</option>
-          <option value="out">Sortie</option>
-          <option value="transfer">Transfert</option>
-        </select>
-        <input id="mvRef" placeholder="Référence produit">
-        <input id="mvQty" type="number" min="1" step="1" placeholder="Quantité">
-        <select id="mvSize"></select>
-        <input id="mvNote" placeholder="Destinataire / motif (sortie), bon, etc.">
-        <select id="mvToAgency" class="hidden"></select>
-        <button id="btnAddMv" class="primary">Ajouter</button>
-      </div>
-      <hr>
-      <div class="flex">
-        <input id="histSearch" placeholder="Filtrer l'historique">
-        <div class="right">
-          <button id="btnExportMv" class="ghost admin-only">Export XLSX</button>
-          <button id="btnPurge" class="danger admin-only">Purger l'historique (agence courante)</button>
-        </div>
-      </div>
-      <div class="card" style="max-height:360px; overflow:auto;">
-        <table id="tblMv">
-          <thead><tr><th>Date</th><th>Type</th><th>Agence</th><th>Réf</th><th>Taille</th><th>Qté</th><th>Vers</th><th>Note</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tab-stats" class="tab card hidden">
-      <h3>Statistiques</h3>
-      <div class="grid cols-4">
-        <input id="stFrom" type="date">
-        <input id="stTo" type="date">
-        <select id="stAgency"></select>
-        <button id="btnComputeStats" class="primary">Calculer</button>
-      </div>
-      <hr>
-      <div class="card" style="max-height:360px; overflow:auto;">
-        <table id="tblStats">
-          <thead><tr><th>Référence</th><th>Article</th><th>Stock</th><th>Valorisation</th><th>Entrées</th><th>Sorties</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tab-admin" class="tab card hidden">
-      <h3>Administration</h3>
-      <div class="grid cols-3">
-        <div class="card">
-          <h4>Agences</h4>
+        <h4>Utilisateurs (plusieurs agences possibles)</h4>
+        <div class="grid">
+          <input id="uUser" placeholder="Identifiant">
+          <input id="uPass" placeholder="Mot de passe">
+          <select id="uRole">
+            <option value="admin">admin</option>
+            <option value="agence">agence</option>
+          </select>
+          <div>
+            <label>Agences autorisées (Ctrl/Cmd + clic)</label>
+            <select id="uAgencies" multiple size="8"></select>
+          </div>
           <div class="flex">
-            <input id="agNew" placeholder="Nouvelle agence">
-            <button id="btnAddAgency">Ajouter</button>
+            <button id="btnCreateUser" class="primary">Créer/Mettre à jour</button>
+            <button id="btnDeleteUser" class="danger">Supprimer</button>
           </div>
-          <ul id="agList"></ul>
         </div>
-        <div class="card">
-          <h4>Utilisateurs</h4>
-          <div class="grid">
-            <input id="uUser" placeholder="Identifiant">
-            <input id="uPass" placeholder="Mot de passe">
-            <select id="uRole">
-              <option value="admin">admin</option>
-              <option value="agence">agence</option>
-            </select>
-            <select id="uAgency"></select>
-            <div class="flex">
-              <button id="btnCreateUser" class="primary">Créer/Mettre à jour</button>
-              <button id="btnDeleteUser" class="danger">Supprimer</button>
-            </div>
-          </div>
+        <hr>
+        <table id="tblUsers"><thead><tr><th>User</th><th>Rôle</th><th>Agences</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="card">
+        <h4>Import / Export (admin)</h4>
+        <div class="grid">
+          <button id="btnExportJSON">Export JSON complet</button>
+          <input type="file" id="fileImportJSON" accept=".json">
           <hr>
-          <table id="tblUsers"><thead><tr><th>User</th><th>Rôle</th><th>Agence</th></tr></thead><tbody></tbody></table>
-        </div>
-        <div class="card">
-          <h4>Import / Export (admin)</h4>
-          <div class="grid">
-            <button id="btnExportJSON">Export JSON complet</button>
-            <input type="file" id="fileImportJSON" accept=".json">
-            <hr>
-            <button id="btnExportXLSX">Export Produits XLSX</button>
-            <input type="file" id="fileImportXLSX" accept=".xlsx">
-          </div>
+          <button id="btnExportXLSX">Export Produits (FULL XLSX)</button>
+          <input type="file" id="fileImportXLSX" accept=".xlsx">
         </div>
       </div>
     </div>
   </div>
 
-  <footer>ALL-IN-ONE • Cloud Firestore par défaut (fallback local possible). Boutons et scripts inlinés.</footer>
+</div>
+<footer>ARTEMIS Security — Cloud Firestore par défaut, fallback local possible.</footer>
 
-  <script>
-  // ======== CONFIG ========
-  const STORAGE_PROVIDER = "firebase";
-  const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyAH29rfTBpssIurraLagSnE-a1nHRpfVOw",
-    authDomain: "gestion-des-stocks-8e1b9.firebaseapp.com",
-    projectId: "gestion-des-stocks-8e1b9",
-    storageBucket: "gestion-des-stocks-8e1b9.firebasestorage.app",
-    messagingSenderId: "217955911455",
-    appId: "1:217955911455:web:3120485f9bd8cadb29122a",
-    measurementId: "G-VHH73188FZ"
+<script>
+// ======== CONFIG ========
+const STORAGE_PROVIDER = "firebase";
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAH29rfTBpssIurraLagSnE-a1nHRpfVOw",
+  authDomain: "gestion-des-stocks-8e1b9.firebaseapp.com",
+  projectId: "gestion-des-stocks-8e1b9",
+  storageBucket: "gestion-des-stocks-8e1b9.firebasestorage.app",
+  messagingSenderId: "217955911455",
+  appId: "1:217955911455:web:3120485f9bd8cadb29122a",
+  measurementId: "G-VHH73188FZ"
+};
+const DEFAULT_AGENCIES = ["HAUT DE FRANCE","IDF","GRAND EST","RHONE ALPES","PACA","OCCITANIE","NOUVELLE AQUITAINE","AUTRE","DEPOT"];
+const FAMILIES = ["Uniformes","Tenues EPI","Communication","Roulant","Informatique","Licences","Divers"];
+const CATEGORIES = ["Uniformes","Tenues EPI","Matériel de communication","Matériel Roulant","Matériel informatique","Licences informatiques","Divers"];
+const SIZES = ["XS","S","M","L","XL","2XL","3XL","4XL"];
+
+// ======== UTILS ========
+const $ = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
+function money(n){ return (n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR'}); }
+async function readFileAsDataURL(file){ return await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+
+// ======== STORAGE (local + firestore) ========
+const DB_KEYS = { users:"users", agencies:"agencies", products:"products", stock:"stock", movements:"movements" };
+let Store=null;
+function createLocalStore(){
+  return {
+    async init(){ localforage.config({name:"artemis-stock"}); if(!await localforage.getItem(DB_KEYS.users)) await this.seed(); },
+    async seed(){
+      await localforage.setItem(DB_KEYS.users,[
+        {user:"ARTEMIS",pass:"Simetra",role:"admin",agencies:DEFAULT_AGENCIES},
+        {user:"admin",pass:"admin",role:"admin",agencies:DEFAULT_AGENCIES},
+        {user:"demo",pass:"demo",role:"agence",agencies:["IDF","DEPOT"]}
+      ]);
+      await localforage.setItem(DB_KEYS.agencies, DEFAULT_AGENCIES);
+      await localforage.setItem(DB_KEYS.products, []);
+      await localforage.setItem(DB_KEYS.stock, {});
+      await localforage.setItem(DB_KEYS.movements, []);
+    },
+    async get(k){ return await localforage.getItem(k); },
+    async set(k,v){ return await localforage.setItem(k,v); }
   };
-  const APP_TITLE = "GESTION DE STOCK — ARTEMIS security (CLOUD • ALL-IN-ONE • FIX)";
-  const DEFAULT_AGENCIES = ["HAUT DE FRANCE","IDF","GRAND EST","RHONE ALPES","PACA","OCCITANIE","NOUVELLE AQUITAINE","AUTRE","DEPOT"];
-  const CATEGORIES = ["Uniformes","Tenues EPI","Matériel de communication","Matériel Roulant","Matériel informatique","Licences informatiques","Divers"];
-  const SIZES = ["XS","S","M","L","XL","2XL","3XL","4XL"];
+}
+function createFirestoreStore(){
+  const app = firebase.initializeApp(FIREBASE_CONFIG);
+  const db = firebase.firestore();
+  const root = db.collection("artemis-stock").doc("v1");
+  return {
+    async init(){ const snap=await root.get(); if(!snap.exists) await this.seed(); },
+    async seed(){ await root.set({
+      [DB_KEYS.users]: [
+        {user:"ARTEMIS",pass:"Simetra",role:"admin",agencies:DEFAULT_AGENCIES},
+        {user:"admin",pass:"admin",role:"admin",agencies:DEFAULT_AGENCIES},
+        {user:"demo",pass:"demo",role:"agence",agencies:["IDF","DEPOT"]}
+      ],
+      [DB_KEYS.agencies]: DEFAULT_AGENCIES,
+      [DB_KEYS.products]: [],
+      [DB_KEYS.stock]: {}, [DB_KEYS.movements]: []
+    },{merge:true}); },
+    async get(k){ const d=(await root.get()).data()||{}; return d[k]; },
+    async set(k,v){ await root.set({[k]:v},{merge:true}); return v; }
+  };
+}
+async function initStore(){
+  try{ Store=createFirestoreStore(); await Store.init(); }
+  catch(e){ Store=createLocalStore(); await Store.init(); }
+}
 
-  // ======== UTILS ========
-  const $ = (sel) => document.querySelector(sel);
-  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-  function dbg(msg){ try{ console.log("[DBG]", msg); const log=$("#debugLog"); if (log){ const p=document.createElement("div"); p.textContent=(new Date()).toLocaleTimeString()+" — "+msg; log.appendChild(p); log.scrollTop=log.scrollHeight; } }catch(e){} }
-  function dbgStatus(obj){ const s=$("#debugStatus"); if(!s) return; s.innerHTML = Object.entries(obj).map(([k,v])=>`<div><b>${k}</b>: ${String(v)}</div>`).join(""); }
-  function showDebug(v){ $("#debugPanel")?.classList.toggle("hidden", !v); }
-  let DEBUG_INFO = { provider:"", firestore:"not-initialized" };
+// ======== AUTH (multi-agencies) ========
+let session = { user:null, role:null, agencies:[], agency:null };
+async function login(user,pass){ const users=await Store.get(DB_KEYS.users)||[]; const f=users.find(u=>u.user===user && u.pass===pass); if(!f) return false; session.user=f.user; session.role=f.role; session.agencies=Array.isArray(f.agencies)?f.agencies:[f.agency||DEFAULT_AGENCIES[0]]; session.agency=session.agencies[0]||DEFAULT_AGENCIES[0]; return true; }
+function logout(){ session={user:null, role:null, agencies:[], agency:null}; }
 
-  // Bind early
-  document.addEventListener('DOMContentLoaded', () => {
-    $("#btnShowDebug")?.addEventListener("click", ()=>{ showDebug(true); alert('Debug ON'); });
-    $("#btnHideDebug")?.addEventListener("click", ()=> showDebug(false));
-    $("#btnForceLocal")?.addEventListener("click", ()=>{ window.forceLocal = true; alert("Mode local forcé — rechargement"); location.reload(); });
-    $("#btnLogin")?.addEventListener("click", onLoginClick);
-    $("#btnLogout")?.addEventListener("click", ()=>{ logout(); location.reload(); });
-  });
+// ======== THRESHOLDS ========
+function getAgencyMin(product, agency){
+  const g = Number(product.minGlobal||0);
+  const pa = product.perAgencyMin?.[agency];
+  return (pa && typeof pa.min === 'number') ? Number(pa.min) : g;
+}
+function getAgencyMinBySize(product, agency, size){
+  const pa = product.perAgencyMin?.[agency];
+  if (pa?.minBySize && typeof pa.minBySize[size] !== 'undefined') return Number(pa.minBySize[size]||0);
+  if (product.minBySize && typeof product.minBySize[size] !== 'undefined') return Number(product.minBySize[size]||0);
+  return 0;
+}
+function isUnderThreshold(product, st, agency){
+  const sizes = new Set([ ...(product.minBySize?Object.keys(product.minBySize):[]), ...(product.perAgencyMin?.[agency]?.minBySize?Object.keys(product.perAgencyMin[agency].minBySize):[]) ]);
+  for (const sz of sizes){
+    const m = getAgencyMinBySize(product, agency, sz);
+    if (m>0 && (st.sizes?.[sz]||0) < m) return true;
+  }
+  const mg = getAgencyMin(product, agency);
+  if (mg && (st.total||0) < mg) return true;
+  return false;
+}
 
-  // ======== STORE ========
-  const DB_KEYS = { users:"users", agencies:"agencies", products:"products", stock:"stock", movements:"movements" };
-  let Store = null;
+// ======== COMMON HELPERS ========
+async function ensureStockAgency(agency){ const stock=await Store.get(DB_KEYS.stock)||{}; if(!stock[agency]){ stock[agency]={}; await Store.set(DB_KEYS.stock,stock); } }
+async function getProductByRef(ref){ const ps=await Store.get(DB_KEYS.products)||[]; return ps.find(p=>p.ref===ref)||null; }
 
-  function createLocalStore(){
-    return {
-      async init(){
-        localforage.config({name:"artemis-stock"});
-        if(!await localforage.getItem(DB_KEYS.users)) await this.seed();
-      },
-      async seed(){
-        await localforage.setItem(DB_KEYS.users,[
-          {user:"ARTEMIS",pass:"Simetra",role:"admin",agency:"IDF"},
-          {user:"admin",pass:"admin",role:"admin",agency:"IDF"},
-          {user:"demo",pass:"demo",role:"agence",agency:"IDF"}
-        ]);
-        await localforage.setItem(DB_KEYS.agencies, DEFAULT_AGENCIES);
-        await localforage.setItem(DB_KEYS.products, []);
-        await localforage.setItem(DB_KEYS.stock, {});
-        await localforage.setItem(DB_KEYS.movements, []);
-      },
-      async get(k){ return await localforage.getItem(k); },
-      async set(k,v){ return await localforage.setItem(k,v); }
-    };
+// ======== UI Tabs ========
+const tabs = [
+  { id:"dashboard", label:"Catalogue" },
+  { id:"produit", label:"Fiche produit" },
+  { id:"mouvements", label:"Mouvements" },
+  { id:"stats", label:"Stats" },
+  { id:"admin", label:"Admin", admin:true }
+];
+function renderTabs(){
+  const cont = $("#mainTabs"); cont.innerHTML = "";
+  for (const t of tabs){
+    if (t.admin && session.role !== "admin") continue;
+    const b = document.createElement("button");
+    b.textContent = t.label; b.dataset.tab = t.id; b.className = "ghost";
+    b.addEventListener("click", ()=>switchTab(t.id));
+    cont.appendChild(b);
+  }
+}
+function switchTab(id){
+  $$(".tab").forEach(el=>el.classList.add("hidden"));
+  $$(".tabs button").forEach(el=>el.classList.remove("active"));
+  $("#tab-"+id).classList.remove("hidden");
+  const btn = $(`.tabs button[data-tab='${id}']`);
+  if (btn) btn.classList.add("active");
+  if (id === "dashboard") loadCatalogue();
+  if (id === "mouvements") loadMovements();
+  if (id === "stats") prepareStats();
+  if (id === "admin") loadAdmin();
+}
+
+// ======== HEADER Agency switcher ========
+function populateAgencySwitcher(){
+  (async ()=>{
+    const sw = $("#agencySwitcher");
+    const all = await Store.get(DB_KEYS.agencies) || [];
+    const allowed = (session.role==="admin") ? all : (session.agencies||[]).filter(a=>all.includes(a));
+    sw.innerHTML = "";
+    allowed.forEach(a=>{ const o=document.createElement("option"); o.value=a; o.text=a; sw.add(o); });
+    session.agency = allowed.includes(session.agency) ? session.agency : allowed[0] || all[0];
+    sw.value = session.agency;
+    sw.classList.toggle("hidden", allowed.length<=1 && session.role!=="admin");
+    sw.onchange = ()=>{ session.agency = sw.value; $("#badgeAgency").textContent = sw.value; loadCatalogue(); loadMovements(); };
+  })();
+}
+
+// ======== LOGIN ========
+$("#btnLogin").addEventListener("click", async ()=>{
+  const u=$("#loginUser").value.trim(), p=$("#loginPass").value.trim();
+  if(!await login(u,p)) return alert("Identifiants invalides.");
+  $("#loginView").classList.add("hidden");
+  $("#appHeader").classList.remove("hidden");
+  $("#appView").classList.remove("hidden");
+  $("#badgeAgency").textContent = session.agency;
+  $("#badgeRole").textContent = session.role;
+  $$(".admin-only").forEach(el=>el.classList.toggle("hidden", session.role!=="admin"));
+  renderTabs(); populateAgencySwitcher();
+  switchTab("dashboard");
+});
+$("#btnLogout").addEventListener("click", ()=>{ logout(); location.reload(); });
+
+// ======== Catalogue & Charts ========
+function fillFamilies(select){ select.innerHTML = "<option value=''>Toutes familles</option>"+FAMILIES.map(f=>"<option>"+f+"</option>").join(""); }
+function fillSubcat(select){ select.innerHTML = "<option value=''>Toutes sous-cat.</option>"; }
+function buildSizesInputs(targetSel){
+  const wrap = $(targetSel); wrap.innerHTML = "";
+  SIZES.forEach(s=>{ const div=document.createElement("div"); div.innerHTML="<label>"+s+" seuil</label><input type='number' min='0' step='1' data-minsize='"+s+"' placeholder='0'>"; wrap.appendChild(div); });
+}
+let reassortLines = []; // store last computed reassort
+
+async function loadCatalogue(){
+  await ensureStockAgency(session.agency);
+  const products = await Store.get(DB_KEYS.products) || [];
+  const stock = await Store.get(DB_KEYS.stock) || {};
+  const stA = stock[session.agency] || {};
+
+  // filters
+  const famSel = $("#filterFamily"); const subSel=$("#filterSubcat"); const catSel=$("#filterCategory");
+  famSel.innerHTML = "<option value=''>Toutes familles</option>"+Array.from(new Set(products.map(p=>p.family).filter(Boolean))).map(f=>"<option>"+f+"</option>").join("");
+  subSel.innerHTML = "<option value=''>Toutes sous-cat.</option>";
+  famSel.onchange = ()=>{
+    const fam = famSel.value;
+    const subs = Array.from(new Set(products.filter(p=>!fam || p.family===fam).map(p=>p.subcat).filter(Boolean)));
+    subSel.innerHTML = "<option value=''>Toutes sous-cat.</option>"+subs.map(s=>"<option>"+s+"</option>").join("");
+    renderTable();
+  };
+  subSel.onchange = renderTable;
+  catSel.innerHTML = "<option value=''>Toutes catégories</option>"+CATEGORIES.map(c=>"<option>"+c+"</option>").join("");
+  catSel.onchange = renderTable;
+  $("#quickSearch").oninput = renderTable;
+  $("#filterReassort").onchange = renderTable;
+
+  function getAgencyThresholdText(p, agency){
+    const mg = getAgencyMin(p, agency);
+    const sizes = new Set([ ...(p.minBySize?Object.keys(p.minBySize):[]), ...(p.perAgencyMin?.[agency]?.minBySize?Object.keys(p.perAgencyMin[agency].minBySize):[]) ]);
+    const parts=[]; sizes.forEach(sz=>{ const m=getAgencyMinBySize(p, agency, sz); if(m>0) parts.push(sz+':'+m); });
+    return (parts.length? parts.join(", ") : "—") + " / G:"+ (mg||0);
   }
 
-  function createFirestoreStore(){
-    const app = firebase.initializeApp(FIREBASE_CONFIG);
-    const db = firebase.firestore();
-    const root = db.collection("artemis-stock").doc("v1");
-    return {
-      async init(){
-        try{
-          const snap = await root.get();
-          if(!snap.exists) await this.seed();
-          DEBUG_INFO.firestore="ok"; dbg("Firestore ready"); dbgStatus(DEBUG_INFO);
-        }catch(e){
-          DEBUG_INFO.firestore=e && (e.message||e.code||"error"); dbg("Firestore error: "+DEBUG_INFO.firestore); dbgStatus(DEBUG_INFO); throw e;
-        }
-      },
-      async seed(){ await root.set({
-        [DB_KEYS.users]: [
-          {user:"ARTEMIS",pass:"Simetra",role:"admin",agency:"IDF"},
-          {user:"admin",pass:"admin",role:"admin",agency:"IDF"},
-          {user:"demo",pass:"demo",role:"agence",agency:"IDF"}
-        ],
-        [DB_KEYS.agencies]: DEFAULT_AGENCIES,
-        [DB_KEYS.products]: [],
-        [DB_KEYS.stock]: {}, [DB_KEYS.movements]: []
-      },{merge:true}); },
-      async get(k){ const d=(await root.get()).data()||{}; return d[k]; },
-      async set(k,v){ await root.set({[k]:v},{merge:true}); return v; }
-    };
-  }
-
-  async function initStore(){
-    dbg("Init store...");
-    if (window.forceLocal){ DEBUG_INFO.provider='local-override'; Store=createLocalStore(); await Store.init(); dbgStatus(DEBUG_INFO); return; }
-    if (STORAGE_PROVIDER==='firebase'){
-      try{ Store=createFirestoreStore(); await Store.init(); DEBUG_INFO.provider='firestore'; dbg("Cloud Firestore actif"); dbgStatus(DEBUG_INFO); return; }
-      catch(e){ DEBUG_INFO.provider='firestore-failed'; dbg("Firestore failed, will fallback local"); dbgStatus(DEBUG_INFO); }
-    }
-    Store=createLocalStore(); await Store.init(); if(!DEBUG_INFO.provider) DEBUG_INFO.provider='local'; dbg("Local actif"); dbgStatus(DEBUG_INFO);
-  }
-
-  // ======== AUTH ========
-  let session = { user:null, role:null, agency:null };
-  async function login(user,pass){ const users=await Store.get(DB_KEYS.users)||[]; const f=users.find(u=>u.user===user && u.pass===pass); if(!f) return false; session.user=f.user; session.role=f.role; session.agency=f.agency||DEFAULT_AGENCIES[0]; return true; }
-  function logout(){ session={user:null,role:null,agency:null}; }
-  async function onLoginClick(){ try{ dbg("Login click"); const u=$("#loginUser").value.trim(); const p=$("#loginPass").value.trim(); const ok=await login(u,p); dbg("Login result="+ok); if(!ok) return alert("Identifiants invalides."); afterLogin(); }catch(err){ alert("Erreur: "+(err&&err.message)); } }
-
-  // ======== HELPERS ========
-  async function ensureStockAgency(agency){ const stock=await Store.get(DB_KEYS.stock)||{}; if(!stock[agency]){ stock[agency]={}; await Store.set(DB_KEYS.stock,stock); } }
-  async function getProductByRef(ref){ const ps=await Store.get(DB_KEYS.products)||[]; return ps.find(p=>p.ref===ref)||null; }
-  function isUnderThreshold(p, st){ const mg=Number(p.minGlobal||0); if (mg && (st.total||0)<mg) return true; if (p.minBySize){ for(const sz of Object.keys(p.minBySize)){ const m=Number(p.minBySize[sz]||0); if(m>0 && (st.sizes?.[sz]||0)<m) return true; } } return false; }
-  function money(n){ return (n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR'}); }
-
-  function renderTabs(){ const cont=$("#mainTabs"); cont.innerHTML=""; const tabs=[
-    {id:"dashboard",label:"Catalogue"},
-    {id:"produit",label:"Fiche produit"},
-    {id:"mouvements",label:"Mouvements"},
-    {id:"stats",label:"Stats"},
-    {id:"admin",label:"Admin",admin:true}
-  ]; for(const t of tabs){ if(t.admin && session.role!=="admin") continue; const b=document.createElement("button"); b.textContent=t.label; b.dataset.tab=t.id; b.className="ghost"; b.addEventListener("click",()=>switchTab(t.id)); cont.appendChild(b); } }
-  function switchTab(id){ $$(".tab").forEach(el=>el.classList.add("hidden")); $$(".tabs button").forEach(el=>el.classList.remove("active")); $("#tab-"+id).classList.remove("hidden"); const btn=$(".tabs button[data-tab='"+id+"']"); if(btn) btn.classList.add("active"); if(id==="dashboard") loadCatalogue(); if(id==="mouvements") loadMovements(); if(id==="stats") prepareStats(); if(id==="admin") loadAdmin(); }
-
-  function afterLogin(){ $("#loginView").classList.add("hidden"); $("#appHeader").classList.remove("hidden"); $("#appView").classList.remove("hidden"); $("#appTitle").textContent=APP_TITLE; $("#badgeAgency").textContent=session.agency; $("#badgeRole").textContent=session.role; $("#btnSwitchAgency").classList.toggle("hidden", session.role!=="admin"); renderTabs(); switchTab("dashboard"); }
-  $("#btnSwitchAgency")?.addEventListener("click", async ()=>{ if(session.role!=="admin") return; const ags=await Store.get(DB_KEYS.agencies)||[]; const pick=prompt("Basculer vers l'agence :", ags.join(", ")); if(!pick || !ags.includes(pick)) return; session.agency=pick; $("#badgeAgency").textContent=pick; switchTab("dashboard"); });
-
-  async function loadCatalogue(){ await ensureStockAgency(session.agency); const products=await Store.get(DB_KEYS.products)||[]; const stock=await Store.get(DB_KEYS.stock)||{}; const stA=stock[session.agency]||{};
-    const catSel=$("#filterCategory"); catSel.innerHTML="<option value=''>Toutes</option>"; CATEGORIES.forEach(c=>{ const o=document.createElement("option"); o.value=c; o.textContent=c; catSel.appendChild(o); });
-    $("#kpiTotalItems").textContent=products.length; let valo=0; for (const p of products){ const q=(stA[p.ref]?.total)||0; valo+=q*Number(p.price||0); } $("#kpiValo").textContent=money(valo);
-    const q=($("#quickSearch").value||"").toLowerCase(); const fcat=catSel.value; const reass=$("#filterReassort").value==="1"; const tbody=$("#tblCatalogue tbody"); tbody.innerHTML="";
-    let under=0;
-    for (const p of products){ const st=stA[p.ref]||{ total:0, sizes:{} }; const isU=isUnderThreshold(p,st); if(isU) under++; if (fcat && p.category!==fcat) continue; const fields=[p.ref,p.name,p.category,(p.barcode||""),(p.affectation||"")].join(" ").toLowerCase(); if (reass && !isU) continue; if (q && !fields.includes(q)) continue; const tr=document.createElement("tr"); if (isU) tr.classList.add(st.total>0 ? "qty-warn" : "qty-alert");
-      tr.innerHTML = `<td>${p.ref}</td><td>${p.name}</td><td>${p.category}</td><td>${money(p.price)}</td><td>${st.total||0}</td><td>${p.minGlobal||""}</td><td>${p.barcode||""}</td><td>${p.affectation||""}</td><td><button class="ghost" data-open="${p.ref}">Ouvrir</button></td>`; tbody.appendChild(tr); }
-    $("#kpiUnder").textContent=under; $("#badgeLow").textContent = under+" sous seuil";
-    $$("button[data-open]").forEach(b=>b.onclick=()=>openProduct(b.dataset.open));
-  }
-  $("#quickSearch")?.addEventListener("input", loadCatalogue);
-  $("#filterCategory")?.addEventListener("change", loadCatalogue);
-  $("#filterReassort")?.addEventListener("change", loadCatalogue);
-
-  function buildSizesInputs(){ const wrap=$("#sizesWrap"); wrap.innerHTML=""; for (const s of SIZES){ const div=document.createElement("div"); div.innerHTML = `<label>${s} seuil</label><input type="number" min="0" step="1" data-minsize="${s}" placeholder="0">`; wrap.appendChild(div); } }
-  $("#pSizesToggle")?.addEventListener("change", ()=>{ $("#sizesWrap").classList.toggle("hidden", !$("#pSizesToggle").checked); });
-  $("#btnNewProduct")?.addEventListener("click", ()=> openProduct(null));
-  function openProduct(ref){ $("#formTitle").textContent = ref ? `Article ${ref}` : "Nouvel article"; const cat = $("#pCategory"); cat.innerHTML = CATEGORIES.map(c=>`<option>${c}</option>`).join(""); buildSizesInputs(); $("#btnDeleteProduct").classList.toggle("hidden", !ref);
-    if (!ref){ $("#pRef").value=""; $("#pName").value=""; $("#pPrice").value=""; $("#pVendor").value=""; $("#pBarcode").value=""; $("#pAffectation").value=""; $("#pMinGlobal").value=""; $("#pSizesToggle").checked=false; $("#sizesWrap").classList.add("hidden"); switchTab("produit"); return; }
-    (async ()=>{ const p = await getProductByRef(ref); if (!p) return;
-      $("#pRef").value = p.ref; $("#pName").value=p.name; $("#pCategory").value=p.category; $("#pPrice").value=p.price||""; $("#pVendor").value=p.vendor||""; $("#pBarcode").value=p.barcode||""; $("#pAffectation").value=p.affectation||""; $("#pMinGlobal").value=p.minGlobal||"";
-      if (p.minBySize){ $("#pSizesToggle").checked=true; $("#sizesWrap").classList.remove("hidden"); for (const s of Object.keys(p.minBySize)){ const inp = document.querySelector(`[data-minsize='${s}']`); if (inp) inp.value=p.minBySize[s]; } }
-      else { $("#pSizesToggle").checked=false; $("#sizesWrap").classList.add("hidden"); }
-      switchTab("produit");
-    })();
-  }
-  $("#btnSaveProduct")?.addEventListener("click", async ()=>{
-    const ref = $("#pRef").value.trim(); if (!ref) return alert("Référence requise");
-    const products = await Store.get(DB_KEYS.products) || [];
-    const existing = products.findIndex(x=>x.ref===ref);
-    const p = {
-      ref,
-      name: $("#pName").value.trim(),
-      category: $("#pCategory").value,
-      price: Number($("#pPrice").value||0),
-      vendor: $("#pVendor").value.trim(),
-      barcode: $("#pBarcode").value.trim(),
-      affectation: $("#pAffectation").value.trim(),
-      minGlobal: Number($("#pMinGlobal").value||0),
-    };
-    if ($("#pSizesToggle").checked){
-      p.minBySize = {};
-      document.querySelectorAll("[data-minsize]").forEach(inp=>{ const n = Number(inp.value||0); if (n>0) p.minBySize[inp.dataset.minsize]=n; });
-    } else { delete p.minBySize; }
-    if (existing>=0) products[existing] = p; else products.push(p);
-    await Store.set(DB_KEYS.products, products);
-    alert("Enregistré.");
-    switchTab("dashboard");
-    loadCatalogue();
-  });
-  $("#btnDeleteProduct")?.addEventListener("click", async ()=>{
-    if (!confirm("Supprimer cet article ?")) return;
-    const ref = $("#pRef").value.trim(); if (!ref) return;
-    const products = await Store.get(DB_KEYS.products) || [];
-    await Store.set(DB_KEYS.products, products.filter(x=>x.ref!==ref));
-    alert("Supprimé."); switchTab("dashboard"); loadCatalogue();
-  });
-
-  function prepareMv(){
-    const sel = $("#mvSize"); if(sel) sel.innerHTML = "<option value=''>—</option>" + SIZES.map(s=>`<option>${s}</option>`).join("");
-  }
-  prepareMv();
-  $("#mvType")?.addEventListener("change", ()=>{ $("#mvToAgency").classList.toggle("hidden", $("#mvType").value!=="transfer"); });
-  async function loadMovements(){
-    await ensureStockAgency(session.agency);
-    const mv = await Store.get(DB_KEYS.movements) || [];
-    const tbody = $("#tblMv tbody"); tbody.innerHTML = "";
-    const q = ($("#histSearch").value||"").toLowerCase();
-    for (const m of mv.slice().reverse()){
-      if (m.agency !== session.agency && session.role!=="admin") continue;
-      const line = [m.type, m.agency, m.ref, m.size||"", m.note||"", String(m.qty)].join(" ").toLowerCase();
-      if (q && !line.includes(q)) continue;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${m.date}</td><td>${m.type}</td><td>${m.agency}</td><td>${m.ref}</td><td>${m.size||""}</td><td>${m.qty}</td><td>${m.toAgency||""}</td><td>${m.note||""}</td>`;
-      tbody.appendChild(tr);
-    }
-    const agSel = $("#mvToAgency"); agSel.innerHTML = "";
-    const ags = await Store.get(DB_KEYS.agencies) || [];
-    ags.forEach(a=>{ const o=document.createElement("option"); o.text=a; agSel.add(o); });
-    document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden", session.role!=="admin"));
-  }
-  $("#histSearch")?.addEventListener("input", loadMovements);
-
-  $("#btnAddMv")?.addEventListener("click", async ()=>{
-    const type = $("#mvType").value;
-    const ref = $("#mvRef").value.trim(); if (!ref) return alert("Référence requise");
-    const qty = Number($("#mvQty").value||0); if (qty<=0) return alert("Quantité invalide");
-    const size = $("#mvSize").value||null;
-    const note = $("#mvNote").value.trim();
-    const toAgency = $("#mvToAgency").value;
-    const prod = await getProductByRef(ref); if (!prod) return alert("Produit introuvable");
-    const stock = await Store.get(DB_KEYS.stock) || {};
-    await ensureStockAgency(session.agency);
-    const stA = stock[session.agency] || {};
-    stA[ref] = stA[ref] || { total:0, sizes:{} };
-    function addQty(obj, delta){
-      obj.total = (obj.total||0) + delta;
-      if (size){ obj.sizes[size] = (obj.sizes[size]||0) + delta; }
-    }
-    if (type==="in"){
-      addQty(stA[ref], qty);
-    } else if (type==="out"){
-      addQty(stA[ref], -qty);
-      if (stA[ref].total<0) stA[ref].total=0;
-      if (size && stA[ref].sizes[size]<0) stA[ref].sizes[size]=0;
-    } else if (type==="transfer"){
-      if (!toAgency) return alert("Choisir l'agence de destination.");
-      addQty(stA[ref], -qty);
-      stock[toAgency] = stock[toAgency] || {};
-      stock[toAgency][ref] = stock[toAgency][ref] || { total:0, sizes:{} };
-      function addTo(obj){ obj.total=(obj.total||0)+qty; if (size){ obj.sizes[size]=(obj.sizes[size]||0)+qty; } }
-      addTo(stock[toAgency][ref]);
-    }
-    stock[session.agency] = stA;
-    await Store.set(DB_KEYS.stock, stock);
-    const movements = await Store.get(DB_KEYS.movements) || [];
-    movements.push({
-      date: new Date().toISOString().slice(0,19).replace('T',' '),
-      type, agency: session.agency, ref, size, qty, toAgency: type==="transfer"?toAgency:"", note
-    });
-    await Store.set(DB_KEYS.movements, movements);
-    $("#mvRef").value=""; $("#mvQty").value=""; $("#mvNote").value="";
-    loadMovements(); loadCatalogue();
-  });
-
-  function prepareStats(){
-    const today = new Date();
-    $("#stTo").valueAsDate = today;
-    const from = new Date(today.getFullYear(), today.getMonth(), 1);
-    $("#stFrom").valueAsDate = from;
-    (async ()=>{
-      const agSel = $("#stAgency"); agSel.innerHTML="";
-      const ags = await Store.get(DB_KEYS.agencies) || [];
-      ags.forEach(a=>{ const o=document.createElement("option"); o.text=a; agSel.add(o); });
-      agSel.value = session.agency;
-    })();
-  }
-  $("#btnComputeStats")?.addEventListener("click", async ()=>{
-    const from = new Date($("#stFrom").value);
-    const to = new Date($("#stTo").value); to.setHours(23,59,59,999);
-    const agency = $("#stAgency").value;
-    const products = await Store.get(DB_KEYS.products) || [];
-    const stock = await Store.get(DB_KEYS.stock) || {};
-    const stA = stock[agency] || {};
-    const mv = (await Store.get(DB_KEYS.movements) || []).filter(m=>{
-      const d = new Date(m.date.replace(' ','T'));
-      return d>=from && d<=to && (m.agency===agency || m.toAgency===agency);
-    });
-    const tbody = $("#tblStats tbody"); tbody.innerHTML="";
+  function renderKPIAndCharts(){
+    $("#kpiTotalItems").textContent = products.length;
+    let valo=0, valoAll=0, under=0;
     for (const p of products){
-      const st = stA[p.ref] || { total:0 };
-      const entries = mv.filter(m=>m.ref===p.ref && (m.type==="in" || (m.type==="transfer"&&m.toAgency===agency))).reduce((a,b)=>a+b.qty,0);
-      const outs = mv.filter(m=>m.ref===p.ref && (m.type==="out" || (m.type==="transfer"&&m.agency===agency))).reduce((a,b)=>a+b.qty,0);
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${p.ref}</td><td>${p.name}</td><td>${st.total||0}</td><td>${money((st.total||0)*Number(p.price||0))}</td><td>${entries}</td><td>${outs}</td>`;
-      tbody.appendChild(tr);
+      const st = stA[p.ref] || {total:0};
+      valo += (st.total||0) * Number(p.price||0);
+      let tAll=0; for(const ag of Object.keys(stock)) tAll += (stock[ag]?.[p.ref]?.total)||0;
+      valoAll += tAll * Number(p.price||0);
+      if (isUnderThreshold(p, stA[p.ref]||{total:0,sizes:{}}, session.agency)) under++;
     }
-  });
+    $("#kpiValo").textContent = money(valo);
+    $("#kpiValoAll").textContent = money(valoAll);
+    $("#kpiUnder").textContent = under;
+    $("#badgeLow").textContent = under+" sous seuil";
 
-  async function loadAdmin(){
-    if (session.role!=="admin"){ switchTab("dashboard"); return; }
-    const ags = await Store.get(DB_KEYS.agencies) || [];
-    const ul = $("#agList"); ul.innerHTML="";
-    ags.forEach(a=>{ const li=document.createElement("li"); li.textContent=a; ul.appendChild(li); });
-    const uAgency = $("#uAgency"); uAgency.innerHTML=""; ags.forEach(a=>{ const o=document.createElement("option"); o.text=a; uAgency.add(o);} );
-    const users = await Store.get(DB_KEYS.users) || [];
-    const tbody = $("#tblUsers tbody"); tbody.innerHTML="";
-    users.forEach(u=>{
-      const tr=document.createElement("tr");
-      tr.innerHTML = `<td>${u.user}</td><td>${u.role}</td><td>${u.agency||""}</td>`;
-      tbody.appendChild(tr);
+    // Charts
+    const byCat = {};
+    products.forEach(p=>{
+      const st=stA[p.ref]?.total||0;
+      const key = p.category||"Sans catégorie";
+      byCat[key]=(byCat[key]||0)+st;
     });
+    const underByCat = {};
+    products.forEach(p=>{
+      const st=stA[p.ref]||{total:0,sizes:{}};
+      const key = p.category||"Sans catégorie";
+      if (isUnderThreshold(p, st, session.agency)) underByCat[key]=(underByCat[key]||0)+1;
+    });
+    const ctx1 = $("#chartByCat").getContext("2d");
+    if (window._chart1) window._chart1.destroy();
+    window._chart1 = new Chart(ctx1,{type:"bar",data:{labels:Object.keys(byCat),datasets:[{label:"Stock total (agence)",data:Object.values(byCat)}]},options:{responsive:true}});
+    const ctx2 = $("#chartUnder").getContext("2d");
+    if (window._chart2) window._chart2.destroy();
+    window._chart2 = new Chart(ctx2,{type:"doughnut",data:{labels:Object.keys(underByCat),datasets:[{label:"Articles sous seuil",data:Object.values(underByCat)}]},options:{responsive:true}});
   }
-  $("#btnAddAgency")?.addEventListener("click", async ()=>{
-    const name = $("#agNew").value.trim(); if (!name) return;
-    const ags = await Store.get(DB_KEYS.agencies) || [];
-    if (!ags.includes(name)){ ags.push(name); await Store.set(DB_KEYS.agencies, ags); alert("Agence ajoutée."); loadAdmin(); }
-  });
-  $("#btnCreateUser")?.addEventListener("click", async ()=>{
-    const user = $("#uUser").value.trim(); const pass=$("#uPass").value.trim();
-    const role = $("#uRole").value; const agency=$("#uAgency").value;
-    if (!user || !pass) return alert("User/Mot de passe requis.");
-    const users = await Store.get(DB_KEYS.users) || [];
-    const i = users.findIndex(u=>u.user===user);
-    const rec = { user, pass, role, agency: role==="agence"?agency: (agency||DEFAULT_AGENCIES[0]) };
-    if (i>=0) users[i]=rec; else users.push(rec);
-    await Store.set(DB_KEYS.users, users); alert("OK"); loadAdmin();
-  });
-  $("#btnDeleteUser")?.addEventListener("click", async ()=>{
-    const user = $("#uUser").value.trim(); if (!user) return;
-    const users = await Store.get(DB_KEYS.users) || [];
-    await Store.set(DB_KEYS.users, users.filter(u=>u.user!==user));
-    alert("Supprimé"); loadAdmin();
-  });
 
-  $("#btnExportJSON")?.addEventListener("click", async ()=>{
-    const dump = {}; for (const k of Object.values(DB_KEYS)) dump[k] = await Store.get(k);
-    const blob = new Blob([JSON.stringify(dump,null,2)], {type:"application/json"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "export_artemis_stock.json"; a.click();
-  });
-  $("#fileImportJSON")?.addEventListener("change", async (e)=>{
-    const file = e.target.files[0]; if (!file) return;
-    const txt = await file.text();
-    const data = JSON.parse(txt);
-    for (const [k,v] of Object.entries(data)){
-      if (Object.values(DB_KEYS).includes(k)) await Store.set(k, v);
+  function renderTable(){
+    renderKPIAndCharts();
+    const fam = famSel.value, sub = subSel.value, cat = catSel.value;
+    const q = ($("#quickSearch").value||"").toLowerCase();
+    const needReass = $("#filterReassort").value==="1";
+    const tbody = $("#tblCatalogue tbody"); tbody.innerHTML="";
+    for (const p of products){
+      if (fam && p.family!==fam) continue;
+      if (sub && p.subcat!==sub) continue;
+      if (cat && p.category!==cat) continue;
+      const st=stA[p.ref]||{total:0,sizes:{}};
+      const isU = isUnderThreshold(p, st, session.agency);
+      if (needReass && !isU) continue;
+      const fields = [p.ref,p.name,p.family,p.subcat,p.category,(p.barcode||""),(p.affectation||"")].join(" ").toLowerCase();
+      if (q && !fields.includes(q)) continue;
+      let totalAll=0; for(const ag of Object.keys(stock)) totalAll += (stock[ag]?.[p.ref]?.total)||0;
+      const tr=document.createElement("tr");
+      if (isU) tr.classList.add(st.total>0?"qty-warn":"qty-alert");
+      tr.innerHTML = "<td>"+p.ref+"</td><td>"+p.name+"</td><td>"+(p.family||"")+"</td><td>"+(p.subcat||"")+"</td><td>"+(p.category||"")+"</td><td>"+money(p.price)+"</td><td>"+(st.total||0)+"</td><td class='admin-only'>"+totalAll+"</td><td>"+getAgencyThresholdText(p,session.agency)+"</td><td>"+(p.barcode||"")+"</td><td>"+(p.affectation||"")+"</td><td><button class='ghost' data-open='"+p.ref+"'>Ouvrir</button></td>";
+      tbody.appendChild(tr);
     }
-    alert("Import terminé."); location.reload();
-  });
-  $("#btnExportXLSX")?.addEventListener("click", async ()=>{
-    const products = await Store.get(DB_KEYS.products) || [];
-    const rows = products.map(p=>({ ref:p.ref, name:p.name, category:p.category, price:p.price, vendor:p.vendor, barcode:p.barcode, affectation:p.affectation, minGlobal:p.minGlobal }));
+    $$("button[data-open]").forEach(b=>b.onclick=()=>openProduct(b.dataset.open));
+    $$(".admin-only").forEach(el=>el.classList.toggle("hidden", session.role!=="admin"));
+  }
+
+  renderTable();
+
+  // Export FULL products (includes thresholds, media, notes)
+  $("#btnExportProducts").onclick = async ()=>{
+    const rows = products.map(p=>({
+      ref:p.ref,name:p.name,family:p.family||"",subcat:p.subcat||"",category:p.category,price:p.price,vendor:p.vendor,barcode:p.barcode,affectation:p.affectation,minGlobal:p.minGlobal||0,
+      XS:p.minBySize?.XS||"",S:p.minBySize?.S||"",M:p.minBySize?.M||"",L:p.minBySize?.L||"",XL:p.minBySize?.XL||"",_2XL:p.minBySize?.["2XL"]||"",_3XL:p.minBySize?.["3XL"]||"",_4XL:p.minBySize?.["4XL"]||"",
+      notes:p.notes||""
+    }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Produits");
-    XLSX.writeFile(wb, "produits.xlsx");
-  });
-  $("#fileImportXLSX")?.addEventListener("change", async (e)=>{
-    const file = e.target.files[0]; if (!file) return;
+    // Seuils par agence (sheet optionnelle)
+    const agRows=[];
+    for (const p of products){
+      if (p.perAgencyMin){
+        for (const [ag,obj] of Object.entries(p.perAgencyMin)){
+          agRows.push({
+            ref:p.ref, agency:ag, min: obj.min||0,
+            XS: obj.minBySize?.XS||"", S: obj.minBySize?.S||"", M: obj.minBySize?.M||"", L: obj.minBySize?.L||"",
+            XL: obj.minBySize?.XL||"", _2XL: obj.minBySize?.["2XL"]||"", _3XL: obj.minBySize?.["3XL"]||"", _4XL: obj.minBySize?.["4XL"]||""
+          });
+        }
+      }
+    }
+    if (agRows.length){
+      const ws2 = XLSX.utils.json_to_sheet(agRows);
+      XLSX.utils.book_append_sheet(wb, ws2, "SeuilsAgences");
+    }
+    XLSX.writeFile(wb, "produits_full.xlsx");
+  };
+
+  // Import FULL products (per-size + per-agency via SeuilsAgences)
+  $("#fileImportProducts").onchange = async (e)=>{
+    const file=e.target.files[0]; if(!file) return;
     const data = await file.arrayBuffer();
-    const wb = XLSX.read(data, {type:"array"});
-    const sheet = wb.Sheets["Produits"];
-    if (!sheet) return alert('Feuille "Produits" introuvable');
-    const rows = XLSX.utils.sheet_to_json(sheet);
-    const products = await Store.get(DB_KEYS.products) || [];
-    const idx = new Map(products.map((p,i)=>[p.ref,i]));
+    const wb = XLSX.read(data,{type:"array"});
+    const list = await Store.get(DB_KEYS.products) || [];
+    const idx = new Map(list.map((p,i)=>[p.ref,i]));
+    const prodSheet = wb.Sheets["Produits"];
+    if (!prodSheet) return alert('Feuille "Produits" introuvable');
+    const rows = XLSX.utils.sheet_to_json(prodSheet);
     for (const r of rows){
       if (!r.ref) continue;
       const rec = {
-        ref: String(r.ref),
-        name: r.name||"",
-        category: r.category||CATEGORIES[0],
-        price: Number(r.price||0),
-        vendor: r.vendor||"",
-        barcode: r.barcode||"",
-        affectation: r.affectation||"",
-        minGlobal: Number(r.minGlobal||0)
+        ref:String(r.ref), name:r.name||"", family:r.family||"", subcat:r.subcat||"", category:r.category||CATEGORIES[0],
+        price:Number(r.price||0), vendor:r.vendor||"", barcode:r.barcode||"", affectation:r.affectation||"", minGlobal:Number(r.minGlobal||0),
+        notes:r.notes||""
       };
-      if (idx.has(rec.ref)) products[idx.get(rec.ref)] = rec; else products.push(rec);
+      // per-size thresholds columns (XS..4XL)
+      const minBySize={};
+      if (r.XS) minBySize.XS = Number(r.XS||0);
+      if (r.S)  minBySize.S  = Number(r.S||0);
+      if (r.M)  minBySize.M  = Number(r.M||0);
+      if (r.L)  minBySize.L  = Number(r.L||0);
+      if (r.XL) minBySize.XL = Number(r.XL||0);
+      if (r._2XL) minBySize["2XL"] = Number(r._2XL||0);
+      if (r._3XL) minBySize["3XL"] = Number(r._3XL||0);
+      if (r._4XL) minBySize["4XL"] = Number(r._4XL||0);
+      if (Object.keys(minBySize).length) rec.minBySize = minBySize;
+      if (idx.has(rec.ref)) list[idx.get(rec.ref)] = Object.assign(list[idx.get(rec.ref)], rec);
+      else list.push(rec);
     }
-    await Store.set(DB_KEYS.products, products);
-    alert("Produits importés."); loadCatalogue();
-  });
+    // Per-agency thresholds
+    const agSheet = wb.Sheets["SeuilsAgences"];
+    if (agSheet){
+      const agRows = XLSX.utils.sheet_to_json(agSheet);
+      agRows.forEach(r=>{
+        if (!r.ref || !r.agency) return;
+        const i = list.findIndex(p=>p.ref==String(r.ref));
+        if (i<0) return;
+        list[i].perAgencyMin = list[i].perAgencyMin || {};
+        const obj = list[i].perAgencyMin[r.agency] = list[i].perAgencyMin[r.agency] || {};
+        obj.min = Number(r.min||0);
+        const sz={};
+        if (r.XS) sz.XS=Number(r.XS||0);
+        if (r.S) sz.S=Number(r.S||0);
+        if (r.M) sz.M=Number(r.M||0);
+        if (r.L) sz.L=Number(r.L||0);
+        if (r.XL) sz.XL=Number(r.XL||0);
+        if (r._2XL) sz["2XL"]=Number(r._2XL||0);
+        if (r._3XL) sz["3XL"]=Number(r._3XL||0);
+        if (r._4XL) sz["4XL"]=Number(r._4XL||0);
+        if (Object.keys(sz).length) obj.minBySize = sz;
+      });
+    }
+    await Store.set(DB_KEYS.products, list);
+    alert("Produits importés (FULL).");
+    loadCatalogue();
+  };
 
-  (async function init(){
-    await initStore();
-    const catSel = $("#pCategory"); if (catSel) catSel.innerHTML = CATEGORIES.map(c=>`<option>${c}</option>`).join("");
-    buildSizesInputs();
+  // Export ALL (JSON zipped)
+  $("#btnExportALL").onclick = async ()=>{
+    const zip = new JSZip();
+    const data = {};
+    for (const k of Object.values(DB_KEYS)) data[k]=await Store.get(k);
+    zip.file("products.json", JSON.stringify(data.products||[], null, 2));
+    zip.file("stock.json", JSON.stringify(data.stock||{}, null, 2));
+    zip.file("movements.json", JSON.stringify(data.movements||[], null, 2));
+    zip.file("agencies.json", JSON.stringify(data.agencies||[], null, 2));
+    zip.file("users.json", JSON.stringify(data.users||[], null, 2));
+    const blob = await zip.generateAsync({type:"blob"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="export_all_artemis.zip"; a.click();
+  };
+
+  // Reassort compute lines (and store for Generate Entrées)
+  $("#btnProposeReassort").onclick = async ()=>{
+    const st = (await Store.get(DB_KEYS.stock)||{})[session.agency]||{};
+    reassortLines = [];
+    for (const p of products){
+      const stp = st[p.ref] || {total:0, sizes:{}};
+      const sizes = new Set([ ...(p.minBySize?Object.keys(p.minBySize):[]), ...(p.perAgencyMin?.[session.agency]?.minBySize?Object.keys(p.perAgencyMin[session.agency].minBySize):[]) ]);
+      let had=false;
+      for (const sz of sizes){
+        const min=getAgencyMinBySize(p, session.agency, sz);
+        const cur=stp.sizes?.[sz]||0;
+        if (min>0 && cur<min){ had=true; reassortLines.push({ref:p.ref, article:p.name, taille:sz, manquant:(min-cur)}); }
+      }
+      if (!had){
+        const mg=getAgencyMin(p, session.agency);
+        if (mg>0 && (stp.total||0) < mg) reassortLines.push({ref:p.ref, article:p.name, taille:"", manquant:(mg-(stp.total||0))});
+      }
+    }
+    if (!reassortLines.length) return alert("Aucun article sous seuil.");
+    const ws = XLSX.utils.json_to_sheet(reassortLines);
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Reassort_Tailles");
+    XLSX.writeFile(wb, 'reassort_'+session.agency+'.xlsx');
+    alert("Réassort calculé (par taille). Vous pouvez aussi cliquer sur 'Générer Entrées'.");
+  };
+
+  // Generate Entries from last reassort
+  $("#btnReassortGenerate").onclick = async ()=>{
+    if (!reassortLines.length) return alert("Cliquez d'abord sur 'Proposer un réassort'.");
+    if (!confirm("Créer les ENTRÉES en stock pour l'agence "+session.agency+" selon les manquants ?")) return;
+    const stock = await Store.get(DB_KEYS.stock)||{};
+    const stA = stock[session.agency] = stock[session.agency]||{};
+    const movements = await Store.get(DB_KEYS.movements)||[];
+    function addQty(obj,delta,sz){ obj.total=(obj.total||0)+delta; if (sz) obj.sizes[sz]=(obj.sizes[sz]||0)+delta; }
+    reassortLines.forEach(line=>{
+      const ref=line.ref; const qty=line.manquant; const size=line.taille||null;
+      stA[ref]=stA[ref]||{total:0,sizes:{}};
+      addQty(stA[ref], qty, size);
+      movements.push({ date:new Date().toISOString().slice(0,19).replace('T',' '), type:"in", agency:session.agency, ref, size, qty, toAgency:"", note:"Réassort auto" });
+    });
+    await Store.set(DB_KEYS.stock, stock); await Store.set(DB_KEYS.movements, movements);
+    alert("Entrées créées depuis le réassort.");
+    loadMovements(); loadCatalogue();
+  };
+}
+
+// ======== Product form ========
+function fillSelects(){
+  $("#pCategory").innerHTML = CATEGORIES.map(c=>"<option>"+c+"</option>").join("");
+  $("#pFamily").innerHTML = "<option>"+FAMILIES[0]+"</option>"+FAMILIES.slice(1).map(f=>"<option>"+f+"</option>").join("");
+}
+$("#pSizesToggle").addEventListener("change", ()=>{ $("#sizesWrap").classList.toggle("hidden", !$("#pSizesToggle").checked); });
+
+async function openProduct(ref){
+  $("#formTitle").textContent = ref ? ("Article "+ref) : "Nouvel article";
+  fillSelects();
+  const agSel=$("#paAgency"); agSel.innerHTML="";
+  const ags=await Store.get(DB_KEYS.agencies)||[]; ags.forEach(a=>{ const o=document.createElement("option"); o.text=a; agSel.add(o); });
+  buildSizesInputs("#sizesWrap");
+  $("#btnDeleteProduct").classList.toggle("hidden", !ref);
+
+  if (!ref){
+    ["#pRef","#pName","#pPrice","#pVendor","#pBarcode","#pAffectation","#pMinGlobal","#pNotes"].forEach(s=>$(s).value="");
+    $("#pSizesToggle").checked=false; $("#sizesWrap").classList.add("hidden");
+    $("#pPhotoPreview").classList.add("hidden"); $("#pTechLink").classList.add("hidden");
+    $("#paAgency").value=session.agency; buildSizesInputs("#paSizesWrap"); $("#paSizesWrap").classList.add("hidden"); $("#paSizesToggle").checked=false;
+    switchTab("produit"); return;
+  }
+  const p=await getProductByRef(ref); if(!p) return;
+  $("#pRef").value=p.ref; $("#pName").value=p.name; $("#pCategory").value=p.category||CATEGORIES[0];
+  $("#pFamily").value=p.family||FAMILIES[0]; $("#pSubcat").value=p.subcat||"";
+  $("#pPrice").value=p.price||""; $("#pVendor").value=p.vendor||"";
+  $("#pBarcode").value=p.barcode||""; $("#pAffectation").value=p.affectation||"";
+  $("#pMinGlobal").value=p.minGlobal||""; $("#pNotes").value=p.notes||"";
+  if (p.minBySize){
+    $("#pSizesToggle").checked=true; $("#sizesWrap").classList.remove("hidden");
+    for (const [sz,v] of Object.entries(p.minBySize)){ const inp = document.querySelector("#sizesWrap [data-minsize='"+sz+"']"); if (inp) inp.value=v; }
+  } else { $("#pSizesToggle").checked=false; $("#sizesWrap").classList.add("hidden"); }
+  if (p.photo){ const img=$("#pPhotoPreview"); img.src=p.photo; img.classList.remove("hidden"); }
+  if (p.tech && p.tech.url){ const a=$("#pTechLink"); a.href=p.tech.url; a.textContent=p.tech.name||"Fiche technique"; a.classList.remove("hidden"); }
+  $("#paAgency").value=session.agency;
+  fillAgencyThresholdsUI(p);
+  switchTab("produit");
+}
+function fillAgencyThresholdsUI(product){
+  const ag=$("#paAgency").value;
+  const pa = (product?.perAgencyMin && product.perAgencyMin[ag]) ? product.perAgencyMin[ag] : null;
+  $("#paMinGlobal").value = pa?.min ?? "";
+  buildSizesInputs("#paSizesWrap");
+  if (pa?.minBySize){
+    $("#paSizesToggle").checked=true; $("#paSizesWrap").classList.remove("hidden");
+    for (const [sz,v] of Object.entries(pa.minBySize)){ const inp=document.querySelector("#paSizesWrap [data-minsize='"+sz+"']"); if (inp) inp.value=v; }
+  } else { $("#paSizesToggle").checked=false; $("#paSizesWrap").classList.add("hidden"); }
+}
+$("#paAgency").addEventListener("change", async ()=>{ const ref=$("#pRef").value.trim(); const p = ref ? await getProductByRef(ref) : null; fillAgencyThresholdsUI(p||{}); });
+$("#paSizesToggle").addEventListener("change", ()=>{ $("#paSizesWrap").classList.toggle("hidden", !$("#paSizesToggle").checked); });
+
+$("#pPhoto").addEventListener("change", async (e)=>{ const f=e.target.files[0]; if(!f) return; const url=await readFileAsDataURL(f); const img=$("#pPhotoPreview"); img.src=url; img.classList.remove("hidden"); });
+$("#pTech").addEventListener("change", async (e)=>{ const f=e.target.files[0]; if(!f) return; const url=await readFileAsDataURL(f); const a=$("#pTechLink"); a.href=url; a.textContent=f.name; a.classList.remove("hidden"); });
+
+$("#btnSaveAgencyThresh").addEventListener("click", async ()=>{
+  const ref=$("#pRef").value.trim(); if(!ref) return alert("Enregistrez d'abord l'article");
+  const products=await Store.get(DB_KEYS.products)||[]; const i=products.findIndex(x=>x.ref===ref); if(i<0) return alert("Produit introuvable");
+  const ag=$("#paAgency").value; products[i].perAgencyMin = products[i].perAgencyMin || {};
+  const rec = products[i].perAgencyMin[ag] = products[i].perAgencyMin[ag] || {};
+  rec.min = Number($("#paMinGlobal").value||0);
+  if ($("#paSizesToggle").checked){ rec.minBySize={}; $$("#paSizesWrap [data-minsize]").forEach(inp=>{ const n=Number(inp.value||0); if(n>0) rec.minBySize[inp.dataset.minsize]=n; }); } else delete rec.minBySize;
+  await Store.set(DB_KEYS.products, products); alert("Seuils agence enregistrés."); loadCatalogue();
+});
+
+$("#btnNewProduct").addEventListener("click", ()=> openProduct(null));
+$("#btnSaveProduct").addEventListener("click", async ()=>{
+  const ref=$("#pRef").value.trim(); if(!ref) return alert("Référence requise");
+  const products=await Store.get(DB_KEYS.products)||[]; const i=products.findIndex(x=>x.ref===ref);
+  const p = {
+    ref,
+    name: $("#pName").value.trim(),
+    family: $("#pFamily").value,
+    subcat: $("#pSubcat").value.trim(),
+    category: $("#pCategory").value,
+    price: Number($("#pPrice").value||0),
+    vendor: $("#pVendor").value.trim(),
+    barcode: $("#pBarcode").value.trim(),
+    affectation: $("#pAffectation").value.trim(),
+    minGlobal: Number($("#pMinGlobal").value||0),
+    notes: $("#pNotes").value.trim()
+  };
+  if ($("#pSizesToggle").checked){ p.minBySize={}; $$("#sizesWrap [data-minsize]").forEach(inp=>{ const n=Number(inp.value||0); if(n>0) p.minBySize[inp.dataset.minsize]=n; }); }
+  const img=$("#pPhotoPreview"); if(img && !img.classList.contains("hidden")) p.photo = img.src;
+  const a=$("#pTechLink"); if(a && !a.classList.contains("hidden")) p.tech = { url:a.href, name:a.textContent };
+  if (i>=0) products[i]=Object.assign(products[i], p); else products.push(p);
+  await Store.set(DB_KEYS.products, products);
+  alert("Enregistré."); switchTab("dashboard"); loadCatalogue();
+});
+$("#btnDeleteProduct").addEventListener("click", async ()=>{
+  if(!confirm("Supprimer cet article ?")) return;
+  const ref=$("#pRef").value.trim(); if(!ref) return;
+  const products=await Store.get(DB_KEYS.products)||[];
+  await Store.set(DB_KEYS.products, products.filter(x=>x.ref!==ref));
+  alert("Supprimé."); switchTab("dashboard"); loadCatalogue();
+});
+
+// ======== Movements ========
+function prepareMv(){
+  $("#mvSize").innerHTML="<option value=''>—</option>"+SIZES.map(s=>"<option>"+s+"</option>").join("");
+  const mw=$("#multiSizesWrap"); mw.innerHTML="";
+  SIZES.forEach(s=>{ const div=document.createElement("div"); div.innerHTML="<label>"+s+"</label><input type='number' min='0' step='1' data-mvsize='"+s+"' placeholder='0'>"; mw.appendChild(div); });
+}
+prepareMv();
+$("#mvType").addEventListener("change", ()=>{ $("#mvToAgency").classList.toggle("hidden", $("#mvType").value!=="transfer"); });
+
+$("#mvRefSearch").addEventListener("input", async (e)=>{ 
+  const val=e.target.value; const products=await Store.get(DB_KEYS.products)||[];
+  const f=products.find(p=>p.ref===val || p.name.toLowerCase()===val.toLowerCase()); if (f) $("#mvRef").value=f.ref;
+});
+async function refreshMvRefList(){
+  const products=await Store.get(DB_KEYS.products)||[]; const list=$("#mvRefList"); list.innerHTML="";
+  products.forEach(p=>{ const opt=document.createElement("option"); opt.value=p.ref; opt.label=p.name; list.appendChild(opt); });
+  const ags=await Store.get(DB_KEYS.agencies)||[]; const agSel=$("#mvToAgency"); agSel.innerHTML=""; ags.forEach(a=>{ const o=document.createElement("option"); o.text=a; agSel.add(o); });
+}
+refreshMvRefList();
+
+$("#mvMultiSizes").addEventListener("change", ()=>{ 
+  const on=$("#mvMultiSizes").checked;
+  $("#multiSizesWrap").classList.toggle("hidden", !on);
+  $("#mvQty").disabled = on; $("#mvSize").disabled = on;
+});
+
+$("#btnAddMv").addEventListener("click", async ()=>{
+  const type=$("#mvType").value;
+  const ref=$("#mvRef").value.trim() || $("#mvRefSearch").value.trim();
+  if (!ref) return alert("Référence requise");
+  const products=await Store.get(DB_KEYS.products)||[]; const prod=products.find(p=>p.ref===ref || p.name.toLowerCase()===ref.toLowerCase());
+  if (!prod) return alert("Produit introuvable");
+
+  const stock=await Store.get(DB_KEYS.stock)||{}; await ensureStockAgency(session.agency);
+  const stA=stock[session.agency]||{}; stA[ref]=stA[ref]||{total:0,sizes:{}};
+
+  let lines=[];
+  if ($("#mvMultiSizes").checked) {
+    $$("#multiSizesWrap [data-mvsize]").forEach(inp=>{ const n=Number(inp.value||0); if(n>0) lines.push({ size:inp.dataset.mvsize, qty:n }); });
+    if (!lines.length) return alert("Renseignez au moins une quantité par taille.");
+  } else {
+    const qty=Number($("#mvQty").value||0); if(qty<=0) return alert("Quantité invalide");
+    const size=$("#mvSize").value||null; lines.push({ size, qty });
+  }
+  const toAgency=$("#mvToAgency").value; const note=$("#mvNote").value.trim();
+  function addQty(obj,delta,sz){ obj.total=(obj.total||0)+delta; if (sz) obj.sizes[sz]=(obj.sizes[sz]||0)+delta; }
+
+  const movements=await Store.get(DB_KEYS.movements)||[];
+  for (const ln of lines){
+    if (type==="in") addQty(stA[ref], ln.qty, ln.size);
+    else if (type==="out"){ addQty(stA[ref], -ln.qty, ln.size); if (stA[ref].total<0) stA[ref].total=0; if (ln.size && stA[ref].sizes[ln.size]<0) stA[ref].sizes[ln.size]=0; }
+    else if (type==="transfer"){ if(!toAgency) return alert("Choisir l'agence de destination."); addQty(stA[ref], -ln.qty, ln.size); stock[toAgency]=stock[toAgency]||{}; stock[toAgency][ref]=stock[toAgency][ref]||{total:0,sizes:{}}; addQty(stock[toAgency][ref], ln.qty, ln.size); }
+    movements.push({ date:new Date().toISOString().slice(0,19).replace('T',' '), type, agency:session.agency, ref, size:ln.size, qty:ln.qty, toAgency:type==="transfer"?toAgency:"", note });
+  }
+  stock[session.agency]=stA; await Store.set(DB_KEYS.stock, stock); await Store.set(DB_KEYS.movements, movements);
+  $("#mvRef").value=""; $("#mvRefSearch").value=""; $("#mvQty").value=""; $("#mvNote").value=""; $$("#multiSizesWrap [data-mvsize]").forEach(i=>i.value="");
+  loadMovements(); loadCatalogue();
+});
+
+$("#histSearch").addEventListener("input", loadMovements);
+
+async function loadMovements(){
+  await ensureStockAgency(session.agency);
+  const mv = await Store.get(DB_KEYS.movements) || [];
+  const tbody = $("#tblMv tbody"); tbody.innerHTML = "";
+  const q = ($("#histSearch").value||"").toLowerCase();
+  for (const m of mv.slice().reverse()){
+    if (m.agency !== session.agency && session.role!=="admin" && m.toAgency !== session.agency) continue;
+    const line = [m.type, m.agency, m.ref, m.size||"", m.note||"", String(m.qty)].join(" ").toLowerCase();
+    if (q && !line.includes(q)) continue;
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td>'+m.date+'</td><td>'+m.type+'</td><td>'+m.agency+'</td><td>'+m.ref+'</td><td>'+(m.size||"")+'</td><td>'+m.qty+'</td><td>'+(m.toAgency||"")+'</td><td>'+(m.note||"")+'</td>';
+    tbody.appendChild(tr);
+  }
+  $$(".admin-only").forEach(el=>el.classList.toggle("hidden", session.role!=="admin"));
+}
+
+// ======== Stats ========
+function prepareStats(){
+  const today = new Date();
+  $("#stTo").valueAsDate = today;
+  const from = new Date(today.getFullYear(), today.getMonth(), 1);
+  $("#stFrom").valueAsDate = from;
+  (async ()=>{
+    const agSel = $("#stAgency"); agSel.innerHTML="";
+    const ags = await Store.get(DB_KEYS.agencies) || [];
+    const allowed = (session.role==="admin") ? ags : session.agencies;
+    allowed.forEach(a=>{ const o=document.createElement("option"); o.text=a; agSel.add(o); });
+    agSel.value = session.agency;
   })();
-  </script>
+}
+$("#btnComputeStats").addEventListener("click", async ()=>{
+  const from = new Date($("#stFrom").value);
+  const to = new Date($("#stTo").value); to.setHours(23,59,59,999);
+  const agency = $("#stAgency").value;
+  const products = await Store.get(DB_KEYS.products) || [];
+  const stock = await Store.get(DB_KEYS.stock) || {};
+  const stA = stock[agency] || {};
+  const mv = (await Store.get(DB_KEYS.movements) || []).filter(m=>{
+    const d = new Date(m.date.replace(' ','T'));
+    return d>=from && d<=to && (m.agency===agency || m.toAgency===agency);
+  });
+  const tbody = $("#tblStats tbody"); tbody.innerHTML="";
+  for (const p of products){
+    const st = stA[p.ref] || { total:0 };
+    const entries = mv.filter(m=>m.ref===p.ref && (m.type==="in" || (m.type==="transfer"&&m.toAgency===agency))).reduce((a,b)=>a+b.qty,0);
+    const outs = mv.filter(m=>m.ref===p.ref && (m.type==="out" || (m.type==="transfer"&&m.agency===agency))).reduce((a,b)=>a+b.qty,0);
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td>'+p.ref+'</td><td>'+p.name+'</td><td>'+(p.family||"")+'</td><td>'+(p.category||"")+'</td><td>'+(st.total||0)+'</td><td>'+money((st.total||0)*Number(p.price||0))+'</td><td>'+entries+'</td><td>'+outs+'</td>';
+    tbody.appendChild(tr);
+  }
+});
+
+// ======== Admin (agencies CRUD, users multi-agencies) ========
+async function loadAdmin(){
+  if (session.role!=="admin") return switchTab("dashboard");
+  const ags = await Store.get(DB_KEYS.agencies) || [];
+  const ul = $("#agList"); ul.innerHTML="";
+  ags.forEach(a=>{
+    const li=document.createElement("li");
+    li.textContent=a;
+    const del=document.createElement("button");
+    del.textContent="Supprimer"; del.className="danger"; del.style.marginLeft="8px";
+    del.onclick = async ()=>{ 
+      if (!confirm("Supprimer l'agence "+a+" ?")) return;
+      const nag = ags.filter(x=>x!==a);
+      await Store.set(DB_KEYS.agencies, nag);
+      const stock = await Store.get(DB_KEYS.stock)||{}; delete stock[a]; await Store.set(DB_KEYS.stock, stock);
+      const users = await Store.get(DB_KEYS.users)||[];
+      users.forEach(u=>{ if (Array.isArray(u.agencies)) u.agencies = u.agencies.filter(x=>x!==a); else if (u.agency===a) u.agency = nag[0]||""; });
+      await Store.set(DB_KEYS.users, users);
+      alert("Agence supprimée."); populateAgencySwitcher(); loadAdmin(); loadCatalogue();
+    };
+    li.appendChild(del); ul.appendChild(li);
+  });
+  // users
+  const users = await Store.get(DB_KEYS.users) || [];
+  const tbody = $("#tblUsers tbody"); tbody.innerHTML="";
+  users.forEach(u=>{
+    const tr=document.createElement("tr");
+    const agsTxt = Array.isArray(u.agencies) ? u.agencies.join(", ") : (u.agency||"");
+    tr.innerHTML = '<td>'+u.user+'</td><td>'+u.role+'</td><td>'+agsTxt+'</td>';
+    tbody.appendChild(tr);
+  });
+  // multi-select agencies
+  const uAg = $("#uAgencies"); uAg.innerHTML="";
+  ags.forEach(a=>{ const o=document.createElement("option"); o.text=a; uAg.add(o); });
+
+  // Admin export/import FULL (same handlers as catalogue)
+  $("#btnExportXLSX").onclick = ()=>document.querySelector("#btnExportProducts").click();
+  $("#fileImportXLSX").onchange = (e)=>document.querySelector("#fileImportProducts").onchange(e);
+  $("#btnExportJSON").onclick = async ()=>{
+    const data = {};
+    for (const k of Object.values(DB_KEYS)) data[k]=await Store.get(k);
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="export_full.json"; a.click();
+  };
+  $("#fileImportJSON").onchange = async (e)=>{
+    const f=e.target.files[0]; if(!f) return;
+    const txt=await f.text(); const data=JSON.parse(txt);
+    for (const [k,v] of Object.entries(data)) if (Object.values(DB_KEYS).includes(k)) await Store.set(k,v);
+    alert("Import JSON terminé."); location.reload();
+  };
+}
+
+// ======== INIT ========
+(async function init(){
+  await initStore();
+  $("#appTitle").textContent = "GESTION DE STOCK — ARTEMIS Security";
+})();
+</script>
 </body>
 </html>
