@@ -3,19 +3,9 @@
 const FIREBASE_CONFIG={apiKey:"AIzaSyAH29rfTBpssIurraLagSnE-a1nHRpfVOw",authDomain:"gestion-des-stocks-8e1b9.firebaseapp.com",projectId:"gestion-des-stocks-8e1b9"};
 const DEFAULT_AGENCIES=["HAUT DE FRANCE","IDF","GRAND EST","RHONE ALPES","PACA","OCCITANIE","NOUVELLE AQUITAINE","AUTRE","DEPOT"];
 const FAMILIES=["Uniformes","EPI","Communication","Roulant","Informatique","Licences","Divers"];
-const CATEGORIES=["Uniformes","Tenues EPI","Matériel de communication","Matériel Roulant","Matériel informatique","Licences informatiques","Divers"];
+const CATEGORIES=["Uniformes (haut)","Uniformes (bas)","Chaussures","Accessoires","Tenues EPI","Gants","Casques","Talkies","Oreillettes","Véhicules","Pièces détachées","PC","Tablettes","Téléphones","Logiciels","Licences informatiques","Divers"];
 const SIZES=["XS","S","M","L","XL","2XL","3XL","4XL"];
 const DB={users:"users",agencies:"agencies",products:"products",stock:"stock",moves:"movements",dict:"dict"};
-// === READY FLAG ===
-let __READY=false;
-function setReady(ok, err){
-  const btn=document.getElementById('btnLogin');
-  const msg=document.getElementById('initMsg');
-  if(btn){ btn.disabled=!ok; }
-  if(msg){ msg.textContent = ok ? '' : ('Erreur d\'initialisation'+(err?(' : '+err):'')); }
-  __READY=ok;
-}
-
 
 const $=s=>document.querySelector(s); const $$=s=>Array.from(document.querySelectorAll(s));
 const money=n=>(n||0).toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
@@ -50,12 +40,60 @@ async function fillAgencySwitch(){const sw=$("#agencySwitch");const all=await St
 sw.innerHTML="";allowed.forEach(a=>{const o=document.createElement("option");o.value=a;o.text=a;sw.add(o)});session.agency=allowed.includes(session.agency)?session.agency:(allowed[0]||all[0]);sw.value=session.agency;
 sw.classList.toggle("hidden",allowed.length<=1&&session.role!=="admin");sw.onchange=()=>{session.agency=sw.value;$("#bAgency").textContent=session.agency;loadCatalogue();loadMoves()}}
 
-document.getElementById('btnLogin').onclick=async()=>{try{if(!__READY)return alert('Patientez : initialisation en cours…');const u=$('#lUser').value.trim(),p=$('#lPass').value.trim();if(!await login(u,p))return alert('Identifiants invalides.');$('#login').classList.add('hidden');$('#hdr').classList.remove('hidden');$('#app').classList.remove('hidden');$('#bAgency').textContent=session.agency;$('#bRole').textContent=session.role;document.querySelectorAll('.admin-only').forEach(e=>e.classList.toggle('hidden',session.role!=='admin'));renderTabs();fillAgencySwitch();switchTab('catalogue');}catch(e){alert('Erreur : '+e);console.error(e)}};
+$("#btnLogin").onclick=async()=>{if(!await login($("#lUser").value.trim(),$("#lPass").value.trim()))return alert("Identifiants invalides.");$("#login").classList.add("hidden");$("#hdr").classList.remove("hidden");$("#app").classList.remove("hidden");
+$("#bAgency").textContent=session.agency;$("#bRole").textContent=session.role;document.querySelectorAll(".admin-only").forEach(e=>e.classList.toggle("hidden",session.role!=="admin"));renderTabs();fillAgencySwitch();switchTab("catalogue")};
 $("#btnLogout").onclick=()=>{logout();location.reload()};
 
 let catPage=1,catPageSize=20,catRows=[];
 const inline=(val,ref,field)=>`<span class="cell" data-ref="${ref}" data-field="${field}" contenteditable="true">${val??""}</span>`;
 const uniq=arr=>Array.from(new Set(arr.filter(Boolean)));
+
+// === REASSORT ===
+let REASSORT_DRAFT=[];
+function computeReassort(products, stock, agency){
+  const draft=[];
+  for(const p of products){
+    const st=(stock[agency]?.[p.ref])||{total:0,sizes:{}};
+    // per size first
+    const sizes = new Set([...(p.minBySize?Object.keys(p.minBySize):[]),...(p.perAgencyMin?.[agency]?.minBySize?Object.keys(p.perAgencyMin[agency].minBySize):[])]);
+    for(const s of sizes){
+      const min = getMinSize(p, agency, s);
+      const cur = st.sizes?.[s]||0;
+      if(min>0 && cur<min) draft.push({ref:p.ref,name:p.name||"",size:s,qty:(min-cur)});
+    }
+    // then global if still under
+    const mg=getMinGlobal(p, agency);
+    if(mg>0 && (st.total||0)<mg){
+      const needed = mg-(st.total||0);
+      draft.push({ref:p.ref,name:p.name||"",size:null,qty:needed});
+    }
+  }
+  return draft;
+}
+async function bindReassortButtons(){
+  document.getElementById("btnReassort").onclick = async ()=>{
+    const products=await Store.get(DB.products)||[]; const stock=await Store.get(DB.stock)||{};
+    REASSORT_DRAFT = computeReassort(products, stock, session.agency);
+    if(!REASSORT_DRAFT.length){ alert("Aucun article sous seuil pour l'agence "+session.agency); return; }
+    const byRef = REASSORT_DRAFT.reduce((a,l)=>{const k=l.ref+"|"+(l.size||"-");a[k]=(a[k]||0)+l.qty;return a;},{});
+    const lines = Object.entries(byRef).map(([k,q])=>{const [r,s]=k.split("|");return r+" "+(s!=="-"?("("+s+") "):"")+"→ +"+q}).slice(0,30).join("\n");
+    alert("Brouillon réassort créé ("+REASSORT_DRAFT.length+" lignes).\n\nPrévisualisation:\n"+lines+(REASSORT_DRAFT.length>30?"\n...":""));
+  };
+  document.getElementById("btnReassortGen").onclick = async ()=>{
+    if(!REASSORT_DRAFT.length){ alert("Aucun brouillon en mémoire. Cliquez d'abord sur 'Proposer un réassort'."); return; }
+    const stock=await Store.get(DB.stock)||{}; stock[session.agency]=stock[session.agency]||{};
+    const mv=await Store.get(DB.moves)||[];
+    for(const ln of REASSORT_DRAFT){
+      stock[session.agency][ln.ref]=stock[session.agency][ln.ref]||{total:0,sizes:{}};
+      stock[session.agency][ln.ref].total += ln.qty;
+      if(ln.size){ stock[session.agency][ln.ref].sizes[ln.size]=(stock[session.agency][ln.ref].sizes[ln.size]||0)+ln.qty; }
+      mv.push({date:new Date().toISOString().slice(0,19).replace('T',' '), type:"in", agency:session.agency, ref:ln.ref, size:ln.size, qty:ln.qty, toAgency:"", dest:"Réassort", motif:"Réassort auto", note:""});
+    }
+    await Store.set(DB.stock, stock); await Store.set(DB.moves, mv);
+    REASSORT_DRAFT=[]; alert("Entrées générées pour le réassort de "+session.agency); loadCatalogue(); loadMoves();
+  };
+}
+
 async function loadCatalogue(){const products=await Store.get(DB.products)||[];const stock=await Store.get(DB.stock)||{};
 $("#fFamily").innerHTML="<option value=''>Toutes familles</option>"+uniq(products.map(p=>p.family)).map(v=>`<option>${v}</option>`).join("");
 $("#fCategory").innerHTML="<option value=''>Toutes catégories</option>"+CATEGORIES.map(v=>`<option>${v}</option>`).join("");
@@ -163,4 +201,4 @@ $("#uDel").onclick=async()=>{const user=$("#uUser").value.trim();if(!user)return
 $("#eXLSX").onclick=()=>$("#expX").click();$("#iXLSX").onchange=e=>$("#impX").onchange(e);$("#eJSON").onclick=async()=>{const data={};for(const k of Object.values(DB))data[k]=await Store.get(k);const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="export_full.json";a.click()};
 $("#iJSON").onchange=async e=>{const f=e.target.files[0];if(!f)return;const txt=await f.text();const data=JSON.parse(txt);for(const [k,v]of Object.entries(data))if(Object.values(DB).includes(k))await Store.set(k,v);alert("Import JSON terminé");location.reload()}};
 
-(async function(){try{const app=firebase.initializeApp(FIREBASE_CONFIG);await firebase.firestore().collection('t').limit(1).get()}catch(e){}try{await initStore();setReady(true);}catch(err){console.error(err);try{Store=LocalStore();await Store.init();setReady(true);}catch(e2){console.error(e2);setReady(false,String(e2))}}})();
+(async function(){try{const app=firebase.initializeApp(FIREBASE_CONFIG);await firebase.firestore().collection("t").limit(1).get()}catch(e){}await initStore()})();
