@@ -1,0 +1,223 @@
+
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GESTION DE STOCK — ARTEMIS security</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Libs -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+  <script>dayjs.extend(dayjs_plugin_utc); dayjs.extend(dayjs_plugin_timezone);</script>
+  <script src="https://cdn.jsdelivr.net/npm/localforage@1/dist/localforage.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  
+  <!-- Firebase (compat) for Firestore cloud mode -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script defer src="config.js"></script>
+
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="hidden" id="appHeader">
+    <img src="logo.jpg" alt="ARTEMIS security">
+    <h1 id="appTitle"></h1>
+    <span class="badge" id="badgeAgency"></span>
+    <span class="badge" id="badgeRole"></span>
+    <span class="badge warn" id="badgeLow"></span>
+    <div class="right flex">
+      <button id="btnSwitchAgency" class="ghost">Changer d'agence</button>
+      <button id="btnLogout" class="ghost">Déconnexion</button>
+    </div>
+  </header>
+
+  <!-- LOGIN -->
+  <div class="login-wrap" id="loginView">
+    <div class="card">
+      <div class="brand">
+        <img src="logo.jpg" alt="ARTEMIS security">
+        <h2>Connexion</h2>
+        <small class="muted">Veuillez vous connecter</small>
+      </div>
+      <div class="grid">
+        <input id="loginUser" placeholder="Identifiant" autocomplete="username">
+        <input id="loginPass" type="password" placeholder="Mot de passe" autocomplete="current-password">
+        <button id="btnLogin" class="primary">Se connecter</button>
+      </div>
+      <hr>
+      <small class="muted">© Artemis security — Gestion de stock</small>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div class="container hidden" id="appView">
+    <div class="tabs" id="mainTabs"></div>
+
+    <!-- Dashboard -->
+    <div id="tab-dashboard" class="tab card">
+      <div class="kpi">
+        <div class="item"><div>Total articles</div><div id="kpiTotalItems" style="font-size:24px;font-weight:700;"></div></div>
+        <div class="item"><div>Valorisation stock</div><div id="kpiValo" style="font-size:24px;font-weight:700;"></div></div>
+        <div class="item"><div>Articles sous seuil</div><div id="kpiUnder" style="font-size:24px;font-weight:700;"></div></div>
+      </div>
+      <hr>
+      <div class="grid cols-2">
+        <div>
+          <h3>Recherche rapide</h3>
+          <div class="flex">
+            <input id="quickSearch" placeholder="Nom, référence, code-barres…">
+            <button id="btnScan" class="ghost">Scanner</button>
+          </div>
+          <div id="qrRegion" class="hidden" style="margin-top:8px;"></div>
+        </div>
+        <div>
+          <h3>Filtre</h3>
+          <div class="grid cols-3">
+            <select id="filterCategory"></select>
+            <select id="filterReassort">
+              <option value="">Tous</option>
+              <option value="1">À réassort</option>
+            </select>
+            <button id="btnProposeReassort" class="primary">Proposer un réassort</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <table id="tblCatalogue">
+          <thead>
+            <tr>
+              <th>Référence</th><th>Article</th><th>Catégorie</th><th>Prix achat</th><th>Stock (agence)</th><th>Seuil</th><th>Code-barres</th><th>Affectation</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Fiche produit -->
+    <div id="tab-produit" class="tab card hidden">
+      <h3 id="formTitle">Nouvel article</h3>
+      <div class="grid cols-3">
+        <input id="pRef" placeholder="Référence">
+        <input id="pName" placeholder="Libellé">
+        <select id="pCategory"></select>
+        <input id="pPrice" type="number" min="0" step="0.01" placeholder="Prix d'achat">
+        <input id="pVendor" placeholder="Revendeur">
+        <input id="pBarcode" placeholder="Code-barres / QR">
+      </div>
+      <div class="grid cols-3">
+        <input id="pAffectation" placeholder="Affectation (libre)">
+        <input id="pMinGlobal" type="number" min="0" step="1" placeholder="Seuil mini global">
+        <input id="pSizesToggle" type="checkbox"> <label for="pSizesToggle">Seuils par taille (optionnels)</label>
+      </div>
+      <div id="sizesWrap" class="grid cols-4 hidden"></div>
+      <div class="flex">
+        <button id="btnSaveProduct" class="primary">Enregistrer</button>
+        <button id="btnNewProduct" class="ghost">Nouveau</button>
+        <div class="right">
+          <button id="btnDeleteProduct" class="danger hidden">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mouvements -->
+    <div id="tab-mouvements" class="tab card hidden">
+      <h3>Mouvements (Entrées / Sorties / Transferts)</h3>
+      <div class="grid cols-4">
+        <select id="mvType">
+          <option value="in">Entrée</option>
+          <option value="out">Sortie</option>
+          <option value="transfer">Transfert</option>
+        </select>
+        <input id="mvRef" placeholder="Référence produit">
+        <input id="mvQty" type="number" min="1" step="1" placeholder="Quantité">
+        <select id="mvSize"></select>
+        <input id="mvNote" placeholder="Destinataire / motif (sortie), bon, etc.">
+        <select id="mvToAgency" class="hidden"></select>
+        <button id="btnAddMv" class="primary">Ajouter</button>
+      </div>
+      <hr>
+      <div class="flex">
+        <input id="histSearch" placeholder="Filtrer l'historique">
+        <div class="right">
+          <button id="btnExportMv" class="ghost admin-only">Export XLSX</button>
+          <button id="btnPurge" class="danger admin-only">Purger l'historique (agence courante)</button>
+        </div>
+      </div>
+      <div class="card" style="max-height:360px; overflow:auto;">
+        <table id="tblMv">
+          <thead><tr><th>Date</th><th>Type</th><th>Agence</th><th>Réf</th><th>Taille</th><th>Qté</th><th>Vers</th><th>Note</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div id="tab-stats" class="tab card hidden">
+      <h3>Statistiques</h3>
+      <div class="grid cols-4">
+        <input id="stFrom" type="date">
+        <input id="stTo" type="date">
+        <select id="stAgency"></select>
+        <button id="btnComputeStats" class="primary">Calculer</button>
+      </div>
+      <hr>
+      <div class="card" style="max-height:360px; overflow:auto;">
+        <table id="tblStats">
+          <thead><tr><th>Référence</th><th>Article</th><th>Stock</th><th>Valorisation</th><th>Entrées</th><th>Sorties</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin -->
+    <div id="tab-admin" class="tab card hidden">
+      <h3>Administration</h3>
+      <div class="grid cols-3">
+        <div class="card">
+          <h4>Agences</h4>
+          <div class="flex">
+            <input id="agNew" placeholder="Nouvelle agence">
+            <button id="btnAddAgency">Ajouter</button>
+          </div>
+          <ul id="agList"></ul>
+        </div>
+        <div class="card">
+          <h4>Utilisateurs</h4>
+          <div class="grid">
+            <input id="uUser" placeholder="Identifiant">
+            <input id="uPass" placeholder="Mot de passe">
+            <select id="uRole">
+              <option value="admin">admin</option>
+              <option value="agence">agence</option>
+            </select>
+            <select id="uAgency"></select>
+            <div class="flex">
+              <button id="btnCreateUser" class="primary">Créer/Mettre à jour</button>
+              <button id="btnDeleteUser" class="danger">Supprimer</button>
+            </div>
+          </div>
+          <hr>
+          <table id="tblUsers"><thead><tr><th>User</th><th>Rôle</th><th>Agence</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="card">
+          <h4>Import / Export (admin)</h4>
+          <div class="grid">
+            <button id="btnExportJSON">Export JSON complet</button>
+            <input type="file" id="fileImportJSON" accept=".json">
+            <hr>
+            <button id="btnExportXLSX">Export Produits XLSX</button>
+            <input type="file" id="fileImportXLSX" accept=".xlsx">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <footer>ARTEMIS security — Application front-end (GitHub Pages). Données locales par défaut, connectable à un cloud (Firebase) via <code>config.js</code>.</footer>
+</body>
+</html>
